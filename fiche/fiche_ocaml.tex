@@ -1,0 +1,544 @@
+% Fiche OCaml — récursion, listes et ordre supérieur
+% Compiler avec : xelatex fiche_ocaml.tex  (deux fois pour la table des matières)
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Polices et langue ----------
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Inter}
+\setmonofont{DejaVu Sans Mono}[Scale=0.85]
+\usepackage{polyglossia}
+\setdefaultlanguage{french}
+
+% ---------- Mise en page ----------
+\usepackage[a4paper,margin=2cm,top=2.2cm,bottom=2.2cm]{geometry}
+\usepackage{xcolor}
+\usepackage{tabularx,booktabs,array}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{microtype}
+\usepackage{needspace}
+\setcounter{tocdepth}{1}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\renewcommand{\arraystretch}{1.35}
+\setlist{itemsep=2pt,topsep=3pt}
+
+% ---------- Couleurs ----------
+\definecolor{camel}{HTML}{E0601B}     % orange OCaml
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{soft}{HTML}{FFF4EC}
+\definecolor{codebg}{HTML}{F7F7F9}
+\definecolor{coderule}{HTML}{D9DCE3}
+\definecolor{kw}{HTML}{8A2BE2}
+\definecolor{cm}{HTML}{6B7280}
+\definecolor{str}{HTML}{0F7B45}
+\definecolor{warn}{HTML}{C62828}
+\definecolor{warnbg}{HTML}{FDECEC}
+\definecolor{tip}{HTML}{1565C0}
+\definecolor{tipbg}{HTML}{EAF2FD}
+
+\color{ink}
+
+% ---------- Titres ----------
+\titleformat{\section}
+  {\needspace{10\baselineskip}\sffamily\Large\bfseries\color{camel}}
+  {\thesection.}{0.5em}{}[{\color{camel}\titlerule[1pt]}]
+\titleformat{\subsection}
+  {\needspace{7\baselineskip}\sffamily\large\bfseries\color{ink}}
+  {}{0em}{}
+\titlespacing*{\section}{0pt}{16pt}{8pt}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+
+% ---------- En-tête / pied ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small\color{cm}Fiche OCaml — récursion, listes et ordre supérieur}
+\fancyhead[R]{\sffamily\small\color{cm}EPITA — Info-sup S1}
+\fancyfoot[C]{\sffamily\small\color{cm}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{coderule}\leaders\hrule height \headrulewidth\hfill}}
+
+% ---------- Code ----------
+\lstdefinestyle{ocaml}{
+  language=[Objective]Caml,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{kw}\bfseries,
+  commentstyle=\color{cm}\itshape,
+  stringstyle=\color{str},
+  morekeywords={rec,match,with,fun,function,in,let,if,then,else,failwith,invalid_arg,true,false},
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  upquote=true,
+  tabsize=2,
+}
+\lstset{style=ocaml}
+
+\newtcblisting{caml}[1][]{
+  listing only,
+  listing options={style=ocaml},
+  colback=codebg, colframe=coderule,
+  boxrule=0.5pt, arc=2pt,
+  left=6pt, right=6pt, top=3pt, bottom=3pt,
+  enhanced, breakable,
+  borderline west={2.5pt}{0pt}{camel},
+  #1
+}
+
+% code en ligne, utilisable aussi dans les tableaux
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+
+% ---------- Encadrés ----------
+\newtcolorbox{piege}[1][Piège]{
+  enhanced, colback=warnbg, colframe=warn,
+  boxrule=0pt, leftrule=3pt, arc=2pt,
+  fonttitle=\sffamily\bfseries\small, coltitle=warn,
+  title={#1}, attach title to upper={\ \ },
+  left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+\newtcolorbox{retenir}[1][À retenir]{
+  enhanced, colback=tipbg, colframe=tip,
+  boxrule=0pt, leftrule=3pt, arc=2pt,
+  fonttitle=\sffamily\bfseries\small, coltitle=tip,
+  title={#1}, attach title to upper={\ \ },
+  left=6pt, right=6pt, top=4pt, bottom=4pt
+}
+
+% en-tête de tableau
+\newcommand{\thd}[1]{\sffamily\bfseries\small #1}
+
+\begin{document}
+
+% ================= Page de titre =================
+\begin{tcolorbox}[enhanced, colback=camel, colframe=camel, arc=4pt,
+  left=14pt, right=14pt, top=12pt, bottom=12pt]
+  \color{white}
+  {\sffamily\bfseries\Huge Fiche OCaml}\\[4pt]
+  {\sffamily\Large Récursion, listes et ordre supérieur}\\[8pt]
+  {\sffamily\small TD Caml 1 et 2 — corrections clés, pièges et méthode \hfill 19 octobre 2026}
+\end{tcolorbox}
+
+\vspace{4pt}
+\begin{retenir}[L'idée centrale]
+Presque tout exercice sur les listes se résout avec le même squelette : un \code{match} avec un cas
+\code{[]} et un cas \code{e :: l}. Ce qui change d'une fonction à l'autre, c'est
+\textbf{ce qu'on renvoie sur la liste vide} et \textbf{ce qu'on fait de} \code{e}.
+\end{retenir}
+
+{\small\tableofcontents}
+
+% ================= 1. Syntaxe =================
+\section{Syntaxe de base}
+
+En OCaml, tout est une expression qui renvoie une valeur : un \code{if} comme un \code{match} produit un résultat.
+
+\subsection{Définir des valeurs et des fonctions}
+
+\begin{caml}
+let x = 5                          (* une valeur *)
+let succ x = x + 1                 (* une fonction *)
+let succ = fun x -> x + 1          (* la même chose, écrite avec fun *)
+let rec fact n =                   (* rec : la fonction s'appelle elle-même *)
+  if n = 0 then 1 else n * fact (n - 1)
+\end{caml}
+
+\begin{itemize}
+  \item \code{let} définit, \code{let rec} définit une fonction \textbf{récursive}. Sans \code{rec}, la fonction ne peut pas s'appeler.
+  \item Pas de \code{rec} si la fonction ne s'appelle pas elle-même (ex. \code{find_power}, qui appelle \code{loop}).
+  \item L'appel s'écrit \textbf{sans parenthèses ni virgules} : \code{f x y}, pas \code{f(x, y)}.
+  \item Un argument composé se met entre parenthèses : \code{f (x + 1)}, \code{loop p f (f x)}.
+\end{itemize}
+
+\subsection{Définitions locales : \texttt{let ... in}}
+
+\begin{caml}
+let find_power x n =
+  let p y = y >= n in        (* p n'existe que dans find_power *)
+  let f y = y * x in
+  loop p f 1
+\end{caml}
+
+Une fonction définie à l'intérieur voit les paramètres de la fonction englobante (\code{p} utilise \code{n}, \code{f} utilise \code{x}).
+
+\subsection{Conditions et filtrage}
+
+\begin{caml}
+if condition then a else b         (* les deux branches ont le même type *)
+
+match lst with
+  | [] -> ...                      (* liste vide *)
+  | e :: l -> ...                  (* premier élément e, reste l *)
+\end{caml}
+
+Un \code{if} sans \code{else} ne peut pas renvoyer de valeur (sauf \code{unit}) : il faut toujours le \code{else}.
+
+\subsection{Opérateurs à connaître}
+
+\begin{tabularx}{\linewidth}{@{}l X l@{}}
+\toprule
+\thd{Opérateur} & \thd{Sens} & \thd{Exemple} \\
+\midrule
+\code{::}  & ajoute un élément en tête & \code{1 :: [2; 3]} = \code{[1; 2; 3]} \\
+\code{@}   & concatène deux listes & \code{[1] @ [2; 3]} = \code{[1; 2; 3]} \\
+\code{&&}  & et (s'arrête si le gauche est faux) & \code{p e && for_all p l} \\
+\code{||}  & ou (s'arrête si le gauche est vrai) & \code{p e || exists p l} \\
+\code{=} / \code{<>} & égalité / différence & \code{e = f}, \code{x <> 0} \\
+\code{mod} & reste de la division entière & \code{7 mod 2} = \code{1} \\
+\code{/}   & division entière & \code{7 / 2} = \code{3} \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Types}
+
+\begin{itemize}
+  \item \code{int}, \code{bool} (\code{true} / \code{false}, en minuscules), \code{string}, \code{'a list}, couples \code{int * string}.
+  \item \code{'a} = « n'importe quel type » : \code{map} a le type \code{('a -> 'b) -> 'a list -> 'b list}.
+  \item Une liste contient des éléments \textbf{tous du même type}, séparés par \code{;} : \code{[1; 2; 3]}.
+\end{itemize}
+
+\subsection{Exceptions}
+
+\begin{tabularx}{\linewidth}{@{}l l X@{}}
+\toprule
+\thd{Fonction} & \thd{Exception levée} & \thd{Quand l'utiliser} \\
+\midrule
+\code{invalid_arg "msg"} & \code{Invalid_argument "msg"} & l'argument lui-même est mauvais (\code{k} négatif) \\
+\code{failwith "msg"} & \code{Failure "msg"} & l'argument est correct mais on ne trouve pas ce qu'on cherche \\
+\bottomrule
+\end{tabularx}
+
+% ================= 2. Pièges =================
+\section{Les pièges à éviter}
+
+Ces erreurs sont toutes apparues pendant les TD : les relire avant un partiel évite la plupart des points perdus.
+
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{3.6cm} X >{\raggedright\arraybackslash}p{4.2cm}@{}}
+\toprule
+\thd{Erreur} & \thd{Pourquoi ça coince} & \thd{À écrire} \\
+\midrule
+\code{def f x = ...} & \code{def} vient de Python & \code{let f x = ...} \\
+\code{True} / \code{False} & avec une majuscule, OCaml croit que c'est un constructeur & \code{true} / \code{false} \\
+\code{fe}, \code{fx} & lu comme un seul nom de variable : « Unbound value fe » & \code{f e}, \code{(f x)} \\
+\code{loop p f f x} & passe \code{f} puis \code{x} comme deux arguments séparés & \code{loop p f (f x)} \\
+\code{if p e = true then} & pas faux, mais \code{p e} est déjà un booléen & \code{if p e then} \\
+rappeler sur la même liste & aucun progrès : récursion infinie (stack overflow) & rappeler sur la queue \code{l} \\
+oublier un cas du \code{match} & \code{Match_failure} à l'exécution & couvrir \code{[]}, et \code{[_]} si on lit deux éléments \\
+\code{[_]} pour « non vide » & \code{[_]} = exactement un élément & \code{_ :: _} = au moins un \\
+virgule entre deux motifs & fabrique un tuple, ne veut pas dire « ou » & \code{| ([], _) | (_, []) -> ...} \\
+\code{rec} sans appel récursif & avertissement, et ça trompe le lecteur & \code{let} simple \\
+nom différent de l'énoncé (\code{exist}) & la moulinette cherche \code{exists} : tous les tests échouent & le nom exact du sujet \\
+\code{List.rev} interdit & refusé à la correction & ton propre \code{rev} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{6pt}
+\begin{piege}[Masquer un nom dans un motif.]
+Dans \code{match (l1, l2) with (e :: l1, f :: l2)}, les nouveaux \code{l1} et \code{l2} cachent les anciens :
+on perd la liste complète. Nomme les queues autrement : \code{(e :: q1, f :: q2)}.
+\end{piege}
+
+\begin{piege}[Tester une chose et en renvoyer une autre.]
+Dans \code{if p (f x) then x}, on teste la valeur suivante mais on renvoie l'actuelle : le résultat a toujours
+un cran de retard. Ce qu'on teste et ce qu'on renvoie doivent être la même valeur : \code{if p x then x}.
+\end{piege}
+
+% ================= 3. Squelette =================
+\section{Le squelette récursif sur les listes}
+
+Une liste est soit vide \code{[]}, soit un premier élément collé devant le reste : \code{e :: l}.
+Toute fonction sur une liste suit donc ce modèle :
+
+\begin{caml}
+let rec f lst = match lst with
+  | [] -> (* cas de base : ce qu'on renvoie quand il n'y a plus rien *)
+  | e :: l -> (* on traite e, et on rappelle f sur le reste l *)
+\end{caml}
+
+\begin{retenir}[Deux questions à se poser.]
+\begin{enumerate}[leftmargin=*]
+  \item Que renvoie-t-on sur la liste vide ? La récursion finit \textbf{toujours} par y arriver : ce cas décide du résultat pour toutes les listes.
+  \item Que fait-on de \code{e}, et comment combine-t-on avec l'appel sur \code{l} ?
+\end{enumerate}
+\end{retenir}
+
+\subsection{Les motifs à connaître}
+
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{4.4cm} X >{\raggedright\arraybackslash}p{4.6cm}@{}}
+\toprule
+\thd{Motif} & \thd{Ce qu'il filtre} & \thd{Exemple d'usage} \\
+\midrule
+\code{[]} & la liste vide & cas de base presque partout \\
+\code{[_]} ou \code{[x]} & exactement un élément & \code{is_sorted} \\
+\code{e :: l} & au moins un élément & \code{map}, \code{filter}, \code{exists} \\
+\code{e :: f :: l} & au moins deux éléments & comparer deux voisins \\
+\code{(a, b) :: l} & liste de couples, 1\textsuperscript{er} couple découpé & \code{assoc}, \code{unzip} \\
+\code{([], [])} sur \code{(l1, l2)} & deux listes vides en même temps & \code{identic}, \code{shared} \\
+\code{_} & n'importe quoi (à mettre en dernier) & \code{| _ -> false} \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Trois façons de combiner \texttt{e} avec l'appel récursif}
+
+\textbf{Construire une liste} (\code{map}, \code{filter}) : on met \code{e} (ou \code{f e}) devant le résultat de l'appel. L'ordre est conservé.
+\begin{caml}
+| e :: l -> f e :: map f l
+\end{caml}
+
+\textbf{S'arrêter dès qu'on a la réponse} (\code{for_all}, \code{exists}, \code{find}) : on teste \code{e}, on renvoie tout de suite si c'est décidé, sinon on continue.
+\begin{caml}
+| e :: l -> p e || exists p l
+\end{caml}
+
+\textbf{Accumuler} (fonction auxiliaire avec un paramètre en plus) : on empile dans un accumulateur et on le renvoie à la fin.
+\begin{caml}
+let f lst =
+  let rec aux lst acc = match lst with
+    | [] -> rev acc            (* empiler en tête inverse l'ordre *)
+    | e :: l -> aux l (e :: acc)
+  in aux lst []
+\end{caml}
+
+La fonction auxiliaire sert aussi à vérifier un argument \textbf{une seule fois} avant de commencer (voir \code{assoc} et \code{gcd}).
+
+% ================= 4. TD 1 =================
+\section{Corrections clés du TD 1}
+
+Ces fonctions travaillent sur une ou deux listes, sans le module \code{List}.
+
+\subsection{\texttt{identic} — deux listes sont-elles identiques ?}
+\begin{caml}
+let rec identic l1 l2 = match (l1, l2) with
+  | ([], []) -> true
+  | (e :: q1, f :: q2) -> e = f && identic q1 q2
+  | _ -> false            (* une seule des deux est vide *)
+\end{caml}
+On filtre le \textbf{couple} \code{(l1, l2)} pour regarder les deux listes à la fois. Le cas \code{_} en dernier attrape tous les cas où les longueurs diffèrent.
+
+\subsection{\texttt{shared} — éléments communs de deux listes croissantes}
+\begin{caml}
+let rec shared l1 l2 = match (l1, l2) with
+  | ([], _) | (_, []) -> []
+  | (e :: q1, f :: q2) ->
+      if e = f then e :: shared q1 q2
+      else if e < f then shared q1 l2     (* on jette e seulement *)
+      else shared l1 q2                   (* on jette f seulement *)
+\end{caml}
+L'astuce vient de l'ordre croissant : on jette uniquement \textbf{le plus petit}, car il ne pourra plus jamais égaler un élément de l'autre liste. On repasse la liste \textbf{entière} (\code{l2} ou \code{l1}) pour celle qu'on n'avance pas.
+
+Exemple : \code{shared [1; 3; 6; 6; 8; 9] [2; 5; 6; 6; 8; 9]} = \code{[6; 6; 8; 9]}.
+
+\subsection{\texttt{rev} — retourner une liste (quand \texttt{List.rev} est interdit)}
+\begin{caml}
+let rev l =
+  let rec aux l acc = match l with
+    | [] -> acc
+    | e :: q -> aux q (e :: acc)
+  in aux l []
+\end{caml}
+Empiler en tête dans un accumulateur inverse l'ordre : ici, c'est exactement ce qu'on veut.
+
+\subsection{\texttt{assoc} — valeur associée à une clé (clés triées)}
+\begin{caml}
+let assoc k lst =
+  if k <= 0 then invalid_arg "k not a natural"
+  else
+    let rec aux l = match l with
+      | [] -> failwith "not found"
+      | (key, value) :: q ->
+          if key = k then value
+          else if key > k then failwith "not found"   (* déjà trop loin *)
+          else aux q
+    in aux lst
+\end{caml}
+Trois idées : la fonction auxiliaire vérifie \code{k} une seule fois ; le motif \code{(key, value) :: q} découpe le couple directement ; comme les clés sont triées, on s'arrête dès que \code{key > k}.
+
+\subsection{\texttt{append} et \texttt{flatten} — aplatir une liste de listes}
+\begin{caml}
+let rec append l1 l2 = match l1 with
+  | [] -> l2
+  | e :: q -> e :: append q l2
+
+let rec flatten l = match l with
+  | [] -> []
+  | sl :: q -> append sl (flatten q)
+\end{caml}
+Exemple : \code{flatten [[1; 2]; [3]; [4; 5; 6]]} = \code{[1; 2; 3; 4; 5; 6]}. Si \code{@} est autorisé : \code{sl @ flatten q}.
+
+\subsection{\texttt{gcd} — PGCD par facteurs premiers, en une fonction}
+\begin{caml}
+let gcd u v =
+  if u <= 0 || v <= 0 then invalid_arg "gcd: arguments must be positive"
+  else
+    let rec aux u v d =
+      if u = 1 || v = 1 then 1
+      else if u mod d = 0 && v mod d = 0 then d * aux (u / d) (v / d) d
+      else if u mod d = 0 then aux (u / d) v d
+      else if v mod d = 0 then aux u (v / d) d
+      else aux u v (d + 1)
+    in aux u v 2
+\end{caml}
+On décompose les deux nombres \textbf{en même temps} avec le même diviseur \code{d} : un facteur commun aux deux est multiplié au résultat, un facteur d'un seul côté est retiré sans compter. C'est la logique de \code{shared}, appliquée aux nombres.
+
+Exemples : \code{gcd 45 150} = \code{15} ; \code{gcd 7 100} = \code{1}. Sans le test du début, \code{gcd 0 _} boucle à l'infini.
+
+% ================= 5. TD 2 =================
+\section{Corrections clés du TD 2 : l'ordre supérieur}
+
+Une fonction d'ordre supérieur prend une autre fonction en paramètre : elle sait \textbf{parcourir}, et la fonction reçue lui dit \textbf{quoi faire}. Un prédicat \code{p} est une fonction qui renvoie un booléen.
+
+\subsection{\texttt{loop} — appliquer \texttt{f} jusqu'à ce que \texttt{p} soit vrai}
+\begin{caml}
+let rec loop p f x =
+  if p x then x
+  else loop p f (f x)
+\end{caml}
+\code{p} \textbf{vérifie}, \code{f} \textbf{avance d'un pas}, et \code{loop} alterne les deux. On teste d'abord \code{x} lui-même, car $f^0(x) = x$.
+
+\subsection{\texttt{find\_power} — première puissance de $x$ supérieure ou égale à $n$}
+\begin{caml}
+let find_power x n =
+  let p y = y >= n in      (* on s'arrête quand y >= n *)
+  let f y = y * x in       (* passer à la puissance suivante *)
+  loop p f 1               (* on part de x^0 = 1 *)
+\end{caml}
+Pas de \code{rec} et pas de \code{if} : tout le travail est dans \code{loop}. Version courte :
+\code{loop (fun y -> y >= n) (fun y -> y * x) 1}. Exemple : \code{find_power 2 10} parcourt 1, 2, 4, 8, 16 et renvoie \code{16}.
+
+\subsection{\texttt{map} — appliquer \texttt{f} à chaque élément}
+\begin{caml}
+let rec map f lst = match lst with
+  | [] -> []
+  | e :: l -> f e :: map f l
+\end{caml}
+Exemple : \code{map (fun x -> x * x) [1; 2; 3; 4]} = \code{[1; 4; 9; 16]}.
+
+\subsection{\texttt{for\_all} et \texttt{exists} — tous / au moins un}
+\begin{caml}
+let rec for_all p lst = match lst with
+  | [] -> true                      (* vrai par défaut *)
+  | e :: l -> p e && for_all p l
+
+let rec exists p lst = match lst with
+  | [] -> false
+  | e :: l -> p e || exists p l
+\end{caml}
+Ce sont deux miroirs. \code{&&} s'arrête dès que \code{p e} est faux, \code{||} dès que \code{p e} est vrai. Mettre \code{true} sur la liste vide de \code{exists} ferait répondre \code{true} pour \textbf{toutes} les listes.
+
+\subsection{\texttt{is\_sorted} — la liste est-elle triée selon \texttt{order} ?}
+\begin{caml}
+let rec is_sorted order lst = match lst with
+  | [] | [_] -> true
+  | e :: f :: l -> order e f && is_sorted order (f :: l)
+\end{caml}
+\code{order} compare \textbf{deux} éléments, d'où le motif \code{e :: f :: l}. Le cas \code{[_]} est obligatoire : toute liste triée non vide finit par lui. On rappelle sur \code{f :: l} et pas sur \code{l}, pour comparer \code{f} avec son voisin suivant.
+
+\subsection{\texttt{find} — premier élément qui vérifie \texttt{p}}
+\begin{caml}
+let rec find p lst = match lst with
+  | [] -> failwith "not found"
+  | e :: l -> if p e then e else find p l
+\end{caml}
+\code{find} renvoie un \textbf{élément}, pas un booléen : quand rien ne correspond, il n'y a aucune valeur à renvoyer, donc on lève une exception.
+
+\subsection{\texttt{filter} — garder les éléments qui vérifient \texttt{p}}
+\begin{caml}
+let rec filter p lst = match lst with
+  | [] -> []
+  | e :: l -> if p e then e :: filter p l else filter p l
+\end{caml}
+Exemple : \code{filter (fun x -> x mod 2 = 0) [1; 2; 3; 4]} = \code{[2; 4]}.
+
+% ================= 6. Couples =================
+\section{Renvoyer un couple}
+
+Quand l'appel récursif renvoie un couple, on le découpe avec \code{let (a, b) = ... in}, puis on reconstruit un nouveau couple avec \code{e}.
+
+\begin{caml}
+| e :: l ->
+    let (a, b) = f l in     (* 1. traiter d'abord le reste *)
+    ...                     (* 2. placer e dans le couple *)
+\end{caml}
+
+\subsection{\texttt{partition} — séparer selon \texttt{p} (TD 2, ex. 2.7)}
+\begin{caml}
+let rec partition p lst = match lst with
+  | [] -> ([], [])
+  | e :: l ->
+      let (l1, l2) = partition p l in
+      if p e then (e :: l1, l2)
+      else (l1, e :: l2)
+\end{caml}
+Cette version garde l'ordre sans \code{rev} (bonus automatique). Exemple :
+\code{partition (fun x -> x mod 2 = 0) [1; 2; 3; 4; 5]} = \code{([2; 4], [1; 3; 5])}.
+
+Version avec accumulateurs : il faut retourner les deux listes à la fin.
+\begin{caml}
+let partition p lst =
+  let rec aux lst l1 l2 = match lst with
+    | [] -> (rev l1, rev l2)
+    | e :: l ->
+        if p e then aux l (e :: l1) l2
+        else aux l l1 (e :: l2)
+  in aux lst [] []
+\end{caml}
+
+\subsection{\texttt{unzip} — couper une liste de couples en deux listes}
+\begin{caml}
+let rec unzip lst = match lst with
+  | [] -> ([], [])
+  | (a, b) :: l ->
+      let (l1, l2) = unzip l in
+      (a :: l1, b :: l2)
+\end{caml}
+Pas de prédicat, donc pas de \code{if}. Exemple : \code{unzip [(1, "one"); (2, "two")]} = \code{([1; 2], ["one"; "two"])}.
+
+\subsection{\texttt{count} — compter les oui et les non}
+\begin{caml}
+let rec count p lst = match lst with
+  | [] -> (0, 0)
+  | e :: l ->
+      let (oui, non) = count p l in
+      if p e then (oui + 1, non)
+      else (oui, non + 1)
+\end{caml}
+C'est \code{partition} avec des nombres : \code{(0, 0)} au lieu de \code{([], [])}, et \code{+ 1} au lieu de \code{e ::}.
+
+% ================= 7. Récap =================
+\section{Récap et méthode}
+
+\begin{tabularx}{\linewidth}{@{}l l >{\raggedright\arraybackslash}p{3.3cm} X@{}}
+\toprule
+\thd{Fonction} & \thd{Renvoie} & \thd{Liste vide} & \thd{Ce qu'on fait de \texttt{e}} \\
+\midrule
+\code{map} & une liste & \code{[]} & on garde \code{f e} devant \\
+\code{filter} & une liste & \code{[]} & on garde \code{e} si \code{p e}, sinon on le jette \\
+\code{for_all} & \code{bool} & \code{true} & on s'arrête sur \code{false} si \code{p e} est faux \\
+\code{exists} & \code{bool} & \code{false} & on s'arrête sur \code{true} si \code{p e} est vrai \\
+\code{is_sorted} & \code{bool} & \code{true} (et \code{[_]}) & on compare \code{e} avec le suivant \\
+\code{find} & un élément & \code{Failure} & on renvoie \code{e} si \code{p e} \\
+\code{partition} & couple de listes & \code{([], [])} & \code{e} à gauche si \code{p e}, sinon à droite \\
+\code{unzip} & couple de listes & \code{([], [])} & \code{a} à gauche, \code{b} à droite \\
+\code{count} & couple d'entiers & \code{(0, 0)} & \code{+ 1} à gauche si \code{p e}, sinon à droite \\
+\code{shared} & une liste & \code{[]} si une est vide & on garde si \code{e = f}, sinon on jette le plus petit \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Méthode pour attaquer un exercice}
+
+\begin{enumerate}[leftmargin=*, label=\textcolor{camel}{\sffamily\bfseries\arabic*.}]
+  \item \textbf{Lire le type de retour.} Une liste, un booléen, un élément ou un couple ? Ça fixe le cas de base.
+  \item \textbf{Chercher l'exercice qui ressemble.} La plupart des sujets sont une variante d'une fonction du tableau.
+  \item \textbf{Écrire le cas de base.} Que doit renvoyer la fonction sur \code{[]}, sachant que tous les appels y arrivent ?
+  \item \textbf{Écrire le cas} \code{e :: l}. Que fait-on de \code{e} ? Sur quoi rappelle-t-on ? L'appel doit avancer (sur \code{l}, pas sur la même liste).
+  \item \textbf{Vérifier les motifs.} Tous les cas sont-ils couverts ? Un motif à deux éléments demande aussi \code{[_]}.
+  \item \textbf{Dérouler à la main} sur un exemple de trois éléments : ça suffit pour voir une erreur d'ordre ou de cas de base.
+  \item \textbf{Ajouter des exemples d'utilisation}, dont la liste vide : l'énoncé les demande souvent.
+\end{enumerate}
+
+\end{document}

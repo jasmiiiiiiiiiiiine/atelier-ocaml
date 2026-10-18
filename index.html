@@ -1,0 +1,1384 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>*,*::before,*::after{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Atelier OCaml</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout : en-tête compact, onglets, colonne de lecture de 760px ; les exercices en une carte de travail. */
+:root {
+  --bg: #F5F6FA; --surface: #FFFFFF; --sunk: #EEF0F6; --fg: #161A2C; --muted: #5A6078; --line: #DCE0EA;
+  --accent: #D9601C; --accent-ink: #FFFFFF; --accent-soft: #FCEBDF;
+  --ok: #1C7D5B; --ok-soft: #E1F3EC; --bad: #C0392F; --bad-soft: #FBE7E5; --warn: #9A6A00; --warn-soft: #FBF1D6;
+  --kw: #7A3CC8; --cm: #7C8399; --str: #1C7D5B; --num: #B4501A; --op: #2F5FB3;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #10131F; --surface: #171B2B; --sunk: #1E2335; --fg: #E8EAF3; --muted: #9AA1BA; --line: #2A3048;
+  --accent: #F0813F; --accent-ink: #1A0E05; --accent-soft: #3A2416;
+  --ok: #4CC79A; --ok-soft: #13342A; --bad: #F07A6F; --bad-soft: #3A1C1B; --warn: #E7B847; --warn-soft: #362C12;
+  --kw: #C39BFF; --cm: #7D84A0; --str: #6FD6A9; --num: #F7A26A; --op: #8FB4FF; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #10131F; --surface: #171B2B; --sunk: #1E2335; --fg: #E8EAF3; --muted: #9AA1BA; --line: #2A3048;
+  --accent: #F0813F; --accent-ink: #1A0E05; --accent-soft: #3A2416;
+  --ok: #4CC79A; --ok-soft: #13342A; --bad: #F07A6F; --bad-soft: #3A1C1B; --warn: #E7B847; --warn-soft: #362C12;
+  --kw: #C39BFF; --cm: #7D84A0; --str: #6FD6A9; --num: #F7A26A; --op: #8FB4FF; color-scheme: dark; }
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { border-bottom: 1px solid var(--line); background: var(--surface); }
+header.top .wrap { display: flex; align-items: center; gap: 14px; padding-block: 16px; flex-wrap: wrap; }
+.mark { width: 42px; height: 42px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font: 800 22px/1 var(--display); flex: none; }
+.brand h1 { margin: 0; font: 800 1.45rem/1.1 var(--display); letter-spacing: -0.01em; }
+.brand p { margin: 2px 0 0; color: var(--muted); font: 0.8rem/1.3 var(--mono); }
+.score { margin-left: auto; display: flex; gap: 8px; align-items: center; font: 600 0.82rem/1 var(--mono); color: var(--muted); }
+.score b { color: var(--fg); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: var(--sunk); }
+
+nav.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+nav.tabs .wrap { display: flex; gap: 4px; overflow-x: auto; padding-block: 8px; }
+nav.tabs button { font: 700 0.95rem/1 var(--display); color: var(--muted); background: none; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+nav.tabs button[aria-selected="true"] { color: var(--fg); background: var(--surface); box-shadow: inset 0 -3px 0 var(--accent); }
+nav.tabs button:hover { color: var(--fg); }
+
+main .wrap { padding-block: 28px 64px; }
+section.panel { display: grid; gap: 18px; }
+h2 { font: 800 1.6rem/1.15 var(--display); margin: 8px 0 0; letter-spacing: -0.01em; text-wrap: balance; }
+h3 { font: 700 1.15rem/1.25 var(--display); margin: 14px 0 0; text-wrap: balance; }
+p { margin: 0; max-width: 68ch; }
+.lead { font-size: 1.05rem; color: var(--muted); }
+code, kbd { font: 0.88em var(--mono); background: var(--sunk); padding: 1px 5px; border-radius: 4px; }
+.eyebrow { font: 700 0.72rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+
+pre.code { margin: 0; background: var(--sunk); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font: 0.86rem/1.6 var(--mono); }
+pre.code code { background: none; padding: 0; font: inherit; }
+.k { color: var(--kw); font-weight: 600; } .c { color: var(--cm); font-style: italic; } .s { color: var(--str); } .n { color: var(--num); } .o { color: var(--op); }
+.blank { background: var(--accent-soft); color: var(--accent); border: 1px dashed var(--accent); border-radius: 4px; padding: 0 6px; font-weight: 600; }
+
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 700 0.78rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--sunk); }
+tr:last-child td { border-bottom: 0; }
+
+.callout { border-radius: var(--r); padding: 12px 16px; display: grid; gap: 4px; }
+.callout.tip { background: var(--accent-soft); }
+.callout.bad { background: var(--bad-soft); }
+.callout strong { font-family: var(--display); }
+ol.method { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
+
+/* corrections */
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.chip { font: 600 0.85rem/1 var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 8px 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+input[type="search"], input[type="text"], input[type="number"], select, textarea { font: 0.95rem var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-width: 0; }
+input.mono, textarea, select.mono { font-family: var(--mono); font-size: 0.88rem; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#search { flex: 1 1 200px; }
+.cards { display: grid; gap: 14px; }
+details.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+details.card > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+details.card > summary::-webkit-details-marker { display: none; }
+details.card > summary::after { content: "+"; margin-left: auto; font: 700 1.2rem/1 var(--mono); color: var(--muted); }
+details.card[open] > summary::after { content: "–"; }
+.card-title { font: 700 1.05rem/1.2 var(--mono); }
+.card-sub { color: var(--muted); font-size: 0.93rem; }
+.tag { font: 700 0.7rem/1 var(--mono); padding: 4px 7px; border-radius: 5px; background: var(--sunk); color: var(--muted); }
+.card-body { padding: 0 16px 16px; display: grid; gap: 12px; min-width: 0; }
+.try { border-top: 1px dashed var(--line); padding-top: 12px; display: grid; gap: 10px; }
+.try-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.try-row label { font: 600 0.82rem/1 var(--mono); color: var(--muted); }
+.try-row input, .try-row select { flex: 1 1 160px; }
+
+/* boutons */
+.btn { font: 700 0.95rem/1 var(--display); border: 0; border-radius: 8px; padding: 11px 16px; cursor: pointer; background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: var(--sunk); color: var(--fg); }
+.btn.small { padding: 8px 12px; font-size: 0.85rem; }
+.btn:disabled { opacity: 0.5; cursor: default; }
+
+/* exercices */
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.mode { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: 12px 14px; cursor: pointer; display: grid; gap: 3px; color: var(--fg); }
+.mode b { font: 700 0.98rem/1.2 var(--display); }
+.mode span { font-size: 0.82rem; color: var(--muted); }
+.mode[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.work { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.work-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.work-head .btn { margin-left: auto; }
+.q { font: 700 1.15rem/1.35 var(--display); }
+.answer-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.answer-row input { flex: 1 1 240px; }
+.options { display: grid; gap: 8px; }
+.opt { text-align: left; border: 1px solid var(--line); background: var(--bg); color: var(--fg); border-radius: 8px; padding: 11px 13px; cursor: pointer; font: 0.95rem/1.4 var(--body); }
+.opt:hover:not(:disabled) { border-color: var(--accent); }
+.opt.right { border-color: var(--ok); background: var(--ok-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.feedback { border-radius: var(--r); padding: 13px 16px; display: grid; gap: 8px; }
+.feedback.ok { background: var(--ok-soft); }
+.feedback.no { background: var(--bad-soft); }
+.feedback.mid { background: var(--warn-soft); }
+.feedback .verdict { font: 800 1.05rem/1.2 var(--display); }
+.feedback.ok .verdict { color: var(--ok); } .feedback.no .verdict { color: var(--bad); } .feedback.mid .verdict { color: var(--warn); }
+ol.steps { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; font-size: 0.93rem; }
+textarea#code-in { width: 100%; min-height: 200px; resize: vertical; line-height: 1.55; tab-size: 2; }
+.spec { display: grid; gap: 6px; }
+.sig { font: 600 0.9rem var(--mono); color: var(--muted); }
+.hints { display: grid; gap: 6px; }
+.hint { background: var(--accent-soft); border-radius: 8px; padding: 8px 12px; font-size: 0.93rem; }
+.err-list { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
+.muted { color: var(--muted); font-size: 0.9rem; }
+.note { font: 800 1.6rem/1 var(--display); }
+footer { color: var(--muted); font-size: 0.85rem; padding-block: 24px; border-top: 1px solid var(--line); }
+@media (max-width: 560px) { .score { margin-left: 0; width: 100%; } h2 { font-size: 1.35rem; } .work { padding: 16px; } }
+@media (prefers-reduced-motion: no-preference) { .feedback { animation: rise .25s ease-out; } @keyframes rise { from { transform: translateY(4px); opacity: .6; } to { transform: none; opacity: 1; } } }
+</style>
+
+<header class="top"><div class="wrap">
+  <div class="mark" aria-hidden="true">λ</div>
+  <div class="brand"><h1>Atelier OCaml</h1><p>TD Caml 1–2 · Info-sup S1 · récursion &amp; ordre supérieur</p></div>
+  <div class="score" aria-live="polite">
+    <span class="pill">Réussis <b id="sc-ok">0</b>/<b id="sc-tot">0</b></span>
+    <span class="pill">Série <b id="sc-streak">0</b></span>
+    <button class="btn ghost small" id="sc-reset" type="button">Remettre à zéro</button>
+  </div>
+</div></header>
+
+<nav class="tabs" aria-label="Sections"><div class="wrap" role="tablist">
+  <button role="tab" id="t-cours" aria-controls="cours" aria-selected="false" data-tab="cours">Cours</button>
+  <button role="tab" id="t-corrections" aria-controls="corrections" aria-selected="false" data-tab="corrections">Corrections</button>
+  <button role="tab" id="t-exercices" aria-controls="exercices" aria-selected="true" data-tab="exercices">Exercices</button>
+</div></nav>
+
+<main><div class="wrap">
+
+<!-- ================= EXERCICES ================= -->
+<section class="panel" id="exercices" role="tabpanel" aria-labelledby="t-exercices">
+  <div>
+    <div class="eyebrow">Entraînement</div>
+    <h2>Un nouvel exercice à chaque clic</h2>
+    <p class="lead">Les exercices sont tirés au hasard à partir des fonctions de tes TD. Le site calcule lui-même la bonne réponse et te montre le déroulé quand tu te trompes.</p>
+  </div>
+  <div class="modes" role="group" aria-label="Type d'exercice">
+    <button class="mode" type="button" data-mode="mix" aria-pressed="true"><b>Au hasard</b><span>Tous les types mélangés</span></button>
+    <button class="mode" type="button" data-mode="predict" aria-pressed="false"><b>Prédis le résultat</b><span>Que renvoie cet appel ?</span></button>
+    <button class="mode" type="button" data-mode="bug" aria-pressed="false"><b>Trouve l'erreur</b><span>Code faux, à diagnostiquer</span></button>
+    <button class="mode" type="button" data-mode="fill" aria-pressed="false"><b>Complète le code</b><span>Un trou à remplir</span></button>
+    <button class="mode" type="button" data-mode="write" aria-pressed="false"><b>Écris la fonction</b><span>Corrigée par Claude</span></button>
+  </div>
+  <div class="work" id="work" aria-live="polite"></div>
+</section>
+
+<!-- ================= COURS ================= -->
+<section class="panel" id="cours" role="tabpanel" aria-labelledby="t-cours" hidden>
+  <div>
+    <div class="eyebrow">L'essentiel</div>
+    <h2>Récursion, listes et ordre supérieur</h2>
+    <p class="lead">Presque tout exercice sur les listes se résout avec le même squelette : un <code>match</code> avec un cas <code>[]</code> et un cas <code>e :: l</code>. Ce qui change, c'est ce qu'on renvoie sur la liste vide et ce qu'on fait de <code>e</code>.</p>
+  </div>
+
+  <h3>1. Définir des valeurs et des fonctions</h3>
+  <pre class="code" data-hl>let x = 5                          (* une valeur *)
+let succ x = x + 1                 (* une fonction *)
+let succ = fun x -> x + 1          (* la même chose, écrite avec fun *)
+let rec fact n =                   (* rec : la fonction s'appelle elle-même *)
+  if n = 0 then 1 else n * fact (n - 1)</pre>
+  <ul>
+    <li><code>let rec</code> seulement si la fonction s'appelle elle-même (pas pour <code>find_power</code>, qui appelle <code>loop</code>).</li>
+    <li>L'appel s'écrit sans parenthèses ni virgules : <code>f x y</code>, pas <code>f(x, y)</code>.</li>
+    <li>Un argument calculé se met entre parenthèses : <code>loop p f (f x)</code>.</li>
+    <li>Un <code>if</code> a toujours son <code>else</code>, et les deux branches ont le même type.</li>
+  </ul>
+
+  <h3>2. Définitions locales : let … in</h3>
+  <pre class="code" data-hl>let find_power x n =
+  let p y = y >= n in        (* p n'existe que dans find_power *)
+  let f y = y * x in
+  loop p f 1</pre>
+  <p>Une fonction définie à l'intérieur voit les paramètres de la fonction englobante : <code>p</code> utilise <code>n</code>, <code>f</code> utilise <code>x</code>.</p>
+
+  <h3>3. Opérateurs à connaître</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>Opérateur</th><th>Sens</th><th>Exemple</th></tr></thead>
+    <tbody>
+      <tr><td><code>::</code></td><td>ajoute un élément en tête</td><td><code>1 :: [2; 3]</code> = <code>[1; 2; 3]</code></td></tr>
+      <tr><td><code>@</code></td><td>concatène deux listes</td><td><code>[1] @ [2; 3]</code></td></tr>
+      <tr><td><code>&amp;&amp;</code></td><td>et (s'arrête si la gauche est fausse)</td><td><code>p e &amp;&amp; for_all p l</code></td></tr>
+      <tr><td><code>||</code></td><td>ou (s'arrête si la gauche est vraie)</td><td><code>p e || exists p l</code></td></tr>
+      <tr><td><code>=</code> / <code>&lt;&gt;</code></td><td>égalité / différence</td><td><code>x &lt;&gt; 0</code></td></tr>
+      <tr><td><code>mod</code>, <code>/</code></td><td>reste, division entière</td><td><code>7 mod 2</code> = 1, <code>7 / 2</code> = 3</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>4. Types et exceptions</h3>
+  <ul>
+    <li><code>int</code>, <code>bool</code> (<code>true</code>/<code>false</code> en minuscules), <code>string</code>, <code>'a list</code>, couples <code>int * string</code>.</li>
+    <li>Les éléments d'une liste sont séparés par <code>;</code> : <code>[1; 2]</code>. Avec une virgule, <code>[1, 2]</code> est une liste qui contient <b>un couple</b>.</li>
+    <li><code>map</code> a le type <code>('a -&gt; 'b) -&gt; 'a list -&gt; 'b list</code> : <code>'a</code> veut dire « n'importe quel type ».</li>
+  </ul>
+  <div class="tablebox"><table>
+    <thead><tr><th>Fonction</th><th>Exception levée</th><th>Quand l'utiliser</th></tr></thead>
+    <tbody>
+      <tr><td><code>invalid_arg "msg"</code></td><td><code>Invalid_argument</code></td><td>l'argument lui-même est mauvais (<code>k</code> ≤ 0)</td></tr>
+      <tr><td><code>failwith "msg"</code></td><td><code>Failure</code></td><td>l'argument est correct, mais on ne trouve pas</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>5. Le squelette récursif</h3>
+  <pre class="code" data-hl>let rec f lst = match lst with
+  | [] -> (* cas de base : ce qu'on renvoie quand il n'y a plus rien *)
+  | e :: l -> (* on traite e, et on rappelle f sur le reste l *)</pre>
+  <div class="callout tip"><strong>Deux questions à se poser</strong>
+    <span>1. Que renvoie-t-on sur la liste vide ? La récursion y arrive toujours : ce cas décide du résultat pour toutes les listes.</span>
+    <span>2. Que fait-on de <code>e</code>, et comment combine-t-on avec l'appel sur <code>l</code> ?</span></div>
+
+  <h3>6. Les motifs à connaître</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>Motif</th><th>Filtre</th><th>Utilisé dans</th></tr></thead>
+    <tbody>
+      <tr><td><code>[]</code></td><td>la liste vide</td><td>presque partout</td></tr>
+      <tr><td><code>[_]</code></td><td>exactement un élément</td><td><code>is_sorted</code></td></tr>
+      <tr><td><code>e :: l</code></td><td>au moins un élément</td><td><code>map</code>, <code>filter</code></td></tr>
+      <tr><td><code>e :: f :: l</code></td><td>au moins deux éléments</td><td>comparer deux voisins</td></tr>
+      <tr><td><code>(a, b) :: l</code></td><td>liste de couples, 1er couple découpé</td><td><code>assoc</code>, <code>unzip</code></td></tr>
+      <tr><td><code>([], [])</code> sur <code>(l1, l2)</code></td><td>deux listes à la fois</td><td><code>identic</code>, <code>shared</code></td></tr>
+      <tr><td><code>_</code></td><td>tout le reste (en dernier)</td><td><code>| _ -&gt; false</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>7. Trois façons de combiner e avec l'appel récursif</h3>
+  <p><b>Construire une liste</b> (<code>map</code>, <code>filter</code>) : on met <code>e</code> devant le résultat. L'ordre est conservé.</p>
+  <pre class="code" data-hl>| e :: l -> f e :: map f l</pre>
+  <p><b>S'arrêter dès qu'on sait</b> (<code>for_all</code>, <code>exists</code>, <code>find</code>).</p>
+  <pre class="code" data-hl>| e :: l -> p e || exists p l</pre>
+  <p><b>Accumuler</b> dans une fonction auxiliaire : empiler en tête inverse l'ordre, il faut un <code>rev</code> à la fin.</p>
+  <pre class="code" data-hl>let f lst =
+  let rec aux lst acc = match lst with
+    | [] -> rev acc
+    | e :: l -> aux l (e :: acc)
+  in aux lst []</pre>
+  <p><b>Renvoyer un couple</b> (<code>partition</code>, <code>unzip</code>, <code>count</code>) : on traite d'abord le reste et on découpe son résultat.</p>
+  <pre class="code" data-hl>| e :: l ->
+    let (a, b) = f l in     (* 1. traiter le reste *)
+    ...                     (* 2. placer e dans le couple *)</pre>
+
+  <h3>8. Les pièges vus en TD</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>Erreur</th><th>Pourquoi ça coince</th><th>À écrire</th></tr></thead>
+    <tbody>
+      <tr><td><code>def f x</code></td><td>c'est du Python</td><td><code>let f x</code></td></tr>
+      <tr><td><code>True</code></td><td>pris pour un constructeur</td><td><code>true</code></td></tr>
+      <tr><td><code>fe</code>, <code>fx</code></td><td>« Unbound value fe »</td><td><code>f e</code>, <code>(f x)</code></td></tr>
+      <tr><td><code>p e = true</code></td><td>redondant</td><td><code>p e</code></td></tr>
+      <tr><td>rappel sur la même liste</td><td>récursion infinie</td><td>rappeler sur <code>l</code></td></tr>
+      <tr><td>cas manquant</td><td><code>Match_failure</code></td><td><code>[_]</code> si on lit deux éléments</td></tr>
+      <tr><td><code>(e :: l1, f :: l2)</code></td><td>masque <code>l1</code>, <code>l2</code></td><td><code>(e :: q1, f :: q2)</code></td></tr>
+      <tr><td><code>if p (f x) then x</code></td><td>teste une valeur, renvoie une autre</td><td><code>if p x then x</code></td></tr>
+      <tr><td>nom ≠ énoncé</td><td>la moulinette ne trouve pas</td><td>le nom exact (<code>exists</code>)</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>9. Récap des fonctions</h3>
+  <div class="tablebox"><table>
+    <thead><tr><th>Fonction</th><th>Liste vide</th><th>Ce qu'on fait de e</th></tr></thead>
+    <tbody>
+      <tr><td><code>map</code></td><td><code>[]</code></td><td>on garde <code>f e</code> devant</td></tr>
+      <tr><td><code>filter</code></td><td><code>[]</code></td><td>on garde <code>e</code> si <code>p e</code>, sinon on le jette</td></tr>
+      <tr><td><code>for_all</code></td><td><code>true</code></td><td>stop sur <code>false</code> si <code>p e</code> est faux</td></tr>
+      <tr><td><code>exists</code></td><td><code>false</code></td><td>stop sur <code>true</code> si <code>p e</code> est vrai</td></tr>
+      <tr><td><code>is_sorted</code></td><td><code>true</code> (et <code>[_]</code>)</td><td>on compare <code>e</code> avec le suivant</td></tr>
+      <tr><td><code>find</code></td><td><code>Failure</code></td><td>on renvoie <code>e</code> si <code>p e</code></td></tr>
+      <tr><td><code>partition</code></td><td><code>([], [])</code></td><td><code>e</code> à gauche si <code>p e</code>, sinon à droite</td></tr>
+      <tr><td><code>count</code></td><td><code>(0, 0)</code></td><td><code>+ 1</code> à gauche ou à droite</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>10. Méthode pour attaquer un exercice</h3>
+  <ol class="method">
+    <li><b>Lire le type de retour</b> : liste, booléen, élément ou couple ? Il fixe le cas de base.</li>
+    <li><b>Chercher l'exercice qui ressemble</b> dans le récap.</li>
+    <li><b>Écrire le cas de base</b>, en sachant que tous les appels y arrivent.</li>
+    <li><b>Écrire le cas <code>e :: l</code></b> : que fait-on de <code>e</code>, et l'appel avance-t-il bien ?</li>
+    <li><b>Vérifier les motifs</b> : tous les cas sont-ils couverts ?</li>
+    <li><b>Dérouler à la main</b> sur trois éléments.</li>
+    <li><b>Ajouter des exemples</b>, dont la liste vide.</li>
+  </ol>
+</section>
+
+<!-- ================= CORRECTIONS ================= -->
+<section class="panel" id="corrections" role="tabpanel" aria-labelledby="t-corrections" hidden>
+  <div>
+    <div class="eyebrow">TD 1 et TD 2</div>
+    <h2>Corrections commentées</h2>
+    <p class="lead">Ouvre une fonction pour voir son code et l'idée clé. La partie « Essayer » l'exécute sur tes propres valeurs, étape par étape.</p>
+  </div>
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="Chercher une fonction (map, shared…)" aria-label="Chercher une fonction">
+    <button class="chip" type="button" data-td="all" aria-pressed="true">Tout</button>
+    <button class="chip" type="button" data-td="TD 1" aria-pressed="false">TD 1</button>
+    <button class="chip" type="button" data-td="TD 2" aria-pressed="false">TD 2</button>
+    <button class="chip" type="button" data-td="Bonus" aria-pressed="false">Bonus</button>
+  </div>
+  <div class="cards" id="cards"></div>
+</section>
+
+</div></main>
+<footer><div class="wrap">Les corrections suivent les contraintes des TD : pas de module <code>List</code>, récursion avec <code>match</code>.</div></footer>
+
+<script>
+/* ===== Logique pure : valeurs OCaml, fonctions des TD, générateurs ===== */
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const omod = (a, b) => (a % b) || 0;
+const odiv = (a, b) => Math.trunc(a / b) || 0;
+
+/* ---- représentation des valeurs ----
+   int -> number, bool -> boolean, liste -> Array, couple -> {t:[...]},
+   chaîne -> {s:"..."}, exception -> {exc:"Failure", msg:"..."}, boucle infinie -> {inf:true} */
+const T = (...xs) => ({ t: xs });
+const S = (s) => ({ s });
+const EXC = (exc, msg) => ({ exc, msg });
+
+function fmt(v) {
+  if (Array.isArray(v)) return "[" + v.map(fmt).join("; ") + "]";
+  if (typeof v === "number") return String(v);
+  if (typeof v === "boolean") return v ? "true" : "false";
+  if (v && v.t) return "(" + v.t.map(fmt).join(", ") + ")";
+  if (v && "s" in v) return '"' + v.s + '"';
+  if (v && v.exc) return "Exception: " + v.exc + ' "' + v.msg + '"';
+  if (v && v.inf) return "(ne termine jamais)";
+  return String(v);
+}
+/* argument d'appel : un négatif entre parenthèses */
+const fmtA = (v) => (typeof v === "number" && v < 0 ? "(" + v + ")" : fmt(v));
+
+function deepEq(a, b) {
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((x, i) => deepEq(x, b[i]));
+  }
+  if (a && a.t) return !!(b && b.t) && deepEq(a.t, b.t);
+  if (a && typeof a === "object" && "s" in a) return !!(b && typeof b === "object" && "s" in b) && a.s === b.s;
+  if (a && a.exc) return !!(b && b.exc) && a.exc === b.exc;
+  if (a && a.inf) return !!(b && b.inf);
+  return a === b;
+}
+
+/* ---- lecture d'une valeur OCaml tapée ---- */
+function parseValue(src) {
+  const text = src.trim().replace(/;;\s*$/, "").replace(/^-\s*:\s*[^=]*=\s*/, "").trim();
+  if (!text) throw new Error("Réponse vide.");
+  if (/^(exception\b|failure|failwith|invalid_arg|invalid_argument|erreur)/i.test(text)) {
+    if (/invalid/i.test(text)) return EXC("Invalid_argument", "");
+    if (/fail/i.test(text) || /not found/i.test(text)) return EXC("Failure", "");
+    return EXC("?", "");
+  }
+  if (/infini|boucle|termine/i.test(text)) return { inf: true };
+  const toks = [];
+  const re = /\s*(?:(-?\d+)|("(?:[^"\\]|\\.)*")|(true|false)|([\[\](),;]))/y;
+  let i = 0;
+  while (i < text.length) {
+    re.lastIndex = i;
+    const m = re.exec(text);
+    if (!m) { if (/^\s+$/.test(text.slice(i))) break; throw new Error("Je ne comprends pas « " + text.slice(i, i + 12).trim() + " »."); }
+    if (m[1] !== undefined) toks.push({ k: "int", v: parseInt(m[1], 10) });
+    else if (m[2] !== undefined) toks.push({ k: "str", v: m[2].slice(1, -1) });
+    else if (m[3] !== undefined) toks.push({ k: "bool", v: m[3] === "true" });
+    else toks.push({ k: m[4] });
+    i = re.lastIndex;
+  }
+  let p = 0;
+  const peek = () => toks[p] && toks[p].k;
+  const expect = (k) => { if (peek() !== k) throw new Error("Il manque « " + k + " »."); p++; };
+  let commaInList = false;
+  function tuple(inList) {
+    const xs = [atom()];
+    while (peek() === ",") { if (inList) commaInList = true; p++; xs.push(atom()); }
+    return xs.length === 1 ? xs[0] : { t: xs };
+  }
+  function atom() {
+    const t = toks[p];
+    if (!t) throw new Error("Réponse incomplète.");
+    if (t.k === "int" || t.k === "bool") { p++; return t.v; }
+    if (t.k === "str") { p++; return S(t.v); }
+    if (t.k === "[") {
+      p++; const xs = [];
+      while (peek() !== "]") { xs.push(tuple(true)); if (peek() === ";") p++; else break; }
+      expect("]"); return xs;
+    }
+    if (t.k === "(") { p++; const v = tuple(false); expect(")"); return v; }
+    throw new Error("« " + t.k + " » inattendu.");
+  }
+  const v = tuple(false);
+  if (p < toks.length) throw new Error("Il reste du texte après la valeur.");
+  return { value: v, commaInList };
+}
+
+/* ---- fonctions anonymes proposées ---- */
+const sub = (body, vals) => body.replace(/\b([xy])\b/g, (m) => fmtA(vals[m]));
+const mkF = (body, f) => ({ src: "fun x -> " + body, body, f, kind: "fInt" });
+const mkP = (body, f) => ({ src: "fun x -> " + body, body, f, kind: "pred" });
+const mkO = (body, f) => ({ src: "fun x y -> " + body, body, f, kind: "ord" });
+const LAMBDAS = {
+  fInt: [
+    mkF("x + 1", (x) => x + 1), mkF("x * 2", (x) => x * 2), mkF("x * x", (x) => x * x),
+    mkF("x - 3", (x) => x - 3), mkF("x mod 3", (x) => omod(x, 3)), mkF("x / 2", (x) => odiv(x, 2)),
+    mkF("10 - x", (x) => 10 - x),
+  ],
+  pred: [
+    mkP("x > 3", (x) => x > 3), mkP("x mod 2 = 0", (x) => omod(x, 2) === 0), mkP("x < 0", (x) => x < 0),
+    mkP("x >= 5", (x) => x >= 5), mkP("x mod 3 = 0", (x) => omod(x, 3) === 0), mkP("x <> 4", (x) => x !== 4),
+  ],
+  ord: [
+    mkO("x < y", (x, y) => x < y), mkO("x <= y", (x, y) => x <= y),
+    mkO("x > y", (x, y) => x > y), mkO("x = y", (x, y) => x === y),
+  ],
+  fStep: [mkF("x + 1", (x) => x + 1), mkF("x * 2", (x) => x * 2), mkF("x + 3", (x) => x + 3), mkF("x * 3", (x) => x * 3)],
+  pStop: [mkP("x > 10", (x) => x > 10), mkP("x >= 20", (x) => x >= 20), mkP("x > 50", (x) => x > 50), mkP("x mod 7 = 0", (x) => omod(x, 7) === 0)],
+};
+const lamBySrc = (src) => Object.values(LAMBDAS).flat().find((l) => l.src === src);
+const showApp = (lam, ...vals) => "`" + sub(lam.body, { x: vals[0], y: vals[1] }) + "`";
+
+/* ---- exécutions avec déroulé ---- */
+const C = (s) => "`" + s + "`";
+const RUN = {
+  map(f, l) {
+    const steps = l.map((x) => `${C("f " + fmtA(x))} = ${showApp(f, x)} = ${C(fmt(f.f(x)))}`);
+    if (!l.length) steps.push("Liste vide : on renvoie " + C("[]") + ".");
+    const res = l.map((x) => f.f(x));
+    steps.push("On recolle les résultats dans l'ordre : " + C(fmt(res)));
+    return { res, steps };
+  },
+  filter(p, l) {
+    const res = [], steps = [];
+    for (const x of l) {
+      const ok = p.f(x);
+      if (ok) res.push(x);
+      steps.push(`${C(fmt(x))} : ${showApp(p, x)} vaut ${C(fmt(ok))} → ${ok ? "on le garde" : "on le jette"}`);
+    }
+    steps.push("Liste vide atteinte : " + C("[]") + ". Résultat : " + C(fmt(res)));
+    return { res, steps };
+  },
+  for_all(p, l) {
+    const steps = [];
+    for (const x of l) {
+      const ok = p.f(x);
+      steps.push(`${C(fmt(x))} : ${showApp(p, x)} vaut ${C(fmt(ok))}` + (ok ? " → on continue" : " → contre-exemple, on s'arrête : " + C("false")));
+      if (!ok) return { res: false, steps };
+    }
+    steps.push("Liste vide atteinte sans contre-exemple → " + C("true"));
+    return { res: true, steps };
+  },
+  exists(p, l) {
+    const steps = [];
+    for (const x of l) {
+      const ok = p.f(x);
+      steps.push(`${C(fmt(x))} : ${showApp(p, x)} vaut ${C(fmt(ok))}` + (ok ? " → trouvé, on s'arrête : " + C("true") : " → on continue"));
+      if (ok) return { res: true, steps };
+    }
+    steps.push("Liste vide atteinte sans rien trouver → " + C("false"));
+    return { res: false, steps };
+  },
+  find(p, l) {
+    const steps = [];
+    for (const x of l) {
+      const ok = p.f(x);
+      steps.push(`${C(fmt(x))} : ${showApp(p, x)} vaut ${C(fmt(ok))}` + (ok ? " → c'est le premier, on renvoie " + C(fmt(x)) : " → on continue"));
+      if (ok) return { res: x, steps };
+    }
+    steps.push("Liste vide atteinte : aucun élément ne convient → " + C('failwith "not found"'));
+    return { res: EXC("Failure", "not found"), steps };
+  },
+  is_sorted(o, l) {
+    const steps = [];
+    if (l.length <= 1) { steps.push("Liste de " + l.length + " élément(s) : cas " + C(l.length ? "[_]" : "[]") + " → " + C("true")); return { res: true, steps }; }
+    for (let i = 0; i + 1 < l.length; i++) {
+      const ok = o.f(l[i], l[i + 1]);
+      steps.push(`${C("order " + fmtA(l[i]) + " " + fmtA(l[i + 1]))} = ${showApp(o, l[i], l[i + 1])} = ${C(fmt(ok))}` + (ok ? " → on continue sur " + C(fmt(l.slice(i + 1))) : " → pas dans l'ordre : " + C("false")));
+      if (!ok) return { res: false, steps };
+    }
+    steps.push("Il reste " + C(fmt(l.slice(-1))) + " : cas " + C("[_]") + " → " + C("true"));
+    return { res: true, steps };
+  },
+  partition(p, l) {
+    const a = [], b = [], steps = [];
+    for (const x of l) {
+      const ok = p.f(x);
+      (ok ? a : b).push(x);
+      steps.push(`${C(fmt(x))} : ${showApp(p, x)} vaut ${C(fmt(ok))} → ${ok ? "liste de gauche" : "liste de droite"}`);
+    }
+    const res = T(a, b);
+    steps.push("Résultat (ordre conservé) : " + C(fmt(res)));
+    return { res, steps };
+  },
+  count(p, l) {
+    let a = 0, b = 0; const steps = [];
+    for (const x of l) {
+      const ok = p.f(x);
+      if (ok) a++; else b++;
+      steps.push(`${C(fmt(x))} : ${showApp(p, x)} vaut ${C(fmt(ok))} → ${ok ? "+1 à gauche" : "+1 à droite"}`);
+    }
+    steps.push("Total : " + C(fmt(T(a, b))));
+    return { res: T(a, b), steps };
+  },
+  shared(l1, l2) {
+    let i = 0, j = 0; const res = [], steps = [];
+    while (i < l1.length && j < l2.length) {
+      const e = l1[i], f = l2[j];
+      if (e === f) { res.push(e); steps.push(`${C("e = " + e)}, ${C("f = " + f)} : égaux → on garde ${C(fmt(e))}, on avance des deux côtés`); i++; j++; }
+      else if (e < f) { steps.push(`${C("e = " + e)}, ${C("f = " + f)} : ${C(e + " < " + f)} → on jette ${C(fmt(e))} seulement`); i++; }
+      else { steps.push(`${C("e = " + e)}, ${C("f = " + f)} : ${C(e + " > " + f)} → on jette ${C(fmt(f))} seulement`); j++; }
+    }
+    steps.push("Une des deux listes est vide → fin. Résultat : " + C(fmt(res)));
+    return { res, steps };
+  },
+  rev(l) {
+    const steps = []; let acc = [];
+    steps.push("Départ : " + C("acc = []"));
+    for (const x of l) { acc = [x, ...acc]; steps.push(`On empile ${C(fmt(x))} : ${C("acc = " + fmt(acc))}`); }
+    steps.push("Liste vide → on renvoie l'accumulateur " + C(fmt(acc)));
+    return { res: acc, steps };
+  },
+  flatten(ll) {
+    const steps = []; const res = [];
+    ll.forEach((sl) => { res.push(...sl); steps.push(`On colle ${C(fmt(sl))} devant la suite`); });
+    steps.push("Résultat : " + C(fmt(res)));
+    return { res, steps };
+  },
+  identic(l1, l2) {
+    const steps = [];
+    for (let i = 0; ; i++) {
+      const a = i < l1.length, b = i < l2.length;
+      if (!a && !b) { steps.push("Les deux listes sont vides en même temps → " + C("true")); return { res: true, steps }; }
+      if (!a || !b) { steps.push("Une seule des deux listes est vide (longueurs différentes) → " + C("false")); return { res: false, steps }; }
+      const ok = l1[i] === l2[i];
+      steps.push(`${C(fmt(l1[i]) + " = " + fmt(l2[i]))} vaut ${C(fmt(ok))}` + (ok ? " → on continue" : " → " + C("false")));
+      if (!ok) return { res: false, steps };
+    }
+  },
+  append(l1, l2) {
+    const res = [...l1, ...l2];
+    return { res, steps: [...l1.map((x) => `On recopie ${C(fmt(x))} devant`), "Liste de gauche vide → on renvoie " + C(fmt(l2)), "Résultat : " + C(fmt(res))] };
+  },
+  gcd(u, v) {
+    const steps = [];
+    if (u <= 0 || v <= 0) { steps.push("Un argument est ≤ 0 → " + C('invalid_arg "gcd: arguments must be positive"')); return { res: EXC("Invalid_argument", "gcd: arguments must be positive"), steps }; }
+    let d = 2, acc = 1, guard = 0; const kept = [];
+    while (!(u === 1 || v === 1) && guard++ < 5000) {
+      const du = u % d === 0, dv = v % d === 0;
+      if (du && dv) { kept.push(d); acc *= d; steps.push(`${C("d = " + d)} divise les deux → on garde ${C(String(d))} : ${C("u = " + u / d)}, ${C("v = " + v / d)}`); u /= d; v /= d; }
+      else if (du) { steps.push(`${C("d = " + d)} ne divise que u → ${C("u = " + u / d)}`); u /= d; }
+      else if (dv) { steps.push(`${C("d = " + d)} ne divise que v → ${C("v = " + v / d)}`); v /= d; }
+      else d++;
+    }
+    steps.push(`${C(u === 1 ? "u = 1" : "v = 1")} → plus de facteur commun. Résultat : ${kept.length ? C(kept.join(" × ") + " = " + acc) : C("1")}`);
+    return { res: acc, steps };
+  },
+  find_power(x, n) {
+    const steps = [];
+    let y = 1;
+    for (let k = 0; k < 60; k++) {
+      const ok = y >= n;
+      steps.push(`${C(String(y))} ≥ ${C(String(n))} ? ${ok ? "oui → on renvoie " + C(String(y)) : "non → " + C(y + " * " + fmtA(x) + " = " + y * x)}`);
+      if (ok) return { res: y, steps };
+      const ny = y * x;
+      if (Math.abs(ny) <= Math.abs(y) && ny <= y) { steps.push("La valeur ne grandit plus : la boucle ne termine jamais."); return { res: { inf: true }, steps }; }
+      y = ny;
+    }
+    return { res: { inf: true }, steps };
+  },
+  loop(p, f, x) {
+    const steps = [];
+    for (let k = 0; k < 60; k++) {
+      const ok = p.f(x);
+      steps.push(`${C("x = " + x)} : ${showApp(p, x)} vaut ${C(fmt(ok))}` + (ok ? " → on renvoie " + C(fmt(x)) : " → on rappelle avec " + C("f x = " + f.f(x))));
+      if (ok) return { res: x, steps };
+      x = f.f(x);
+    }
+    steps.push("Toujours pas vrai après 60 tours : la boucle ne termine pas.");
+    return { res: { inf: true }, steps };
+  },
+  assoc(k, lst) {
+    const steps = [];
+    if (k <= 0) { steps.push(`${C(k + " <= 0")} → ${C('invalid_arg "k not a natural"')}`); return { res: EXC("Invalid_argument", "k not a natural"), steps }; }
+    for (const pr of lst) {
+      const key = pr.t[0];
+      if (key === k) { steps.push(`Clé ${C(String(key))} = ${C(String(k))} → on renvoie ${C(fmt(pr.t[1]))}`); return { res: pr.t[1], steps }; }
+      if (key > k) { steps.push(`Clé ${C(String(key))} > ${C(String(k))} : clés triées, ${C(String(k))} ne viendra plus → ${C('failwith "not found"')}`); return { res: EXC("Failure", "not found"), steps }; }
+      steps.push(`Clé ${C(String(key))} < ${C(String(k))} → on continue`);
+    }
+    steps.push("Liste vide → " + C('failwith "not found"'));
+    return { res: EXC("Failure", "not found"), steps };
+  },
+  unzip(lst) {
+    const a = [], b = [], steps = [];
+    for (const pr of lst) { a.push(pr.t[0]); b.push(pr.t[1]); steps.push(`${C(fmt(pr))} : ${C(fmt(pr.t[0]))} à gauche, ${C(fmt(pr.t[1]))} à droite`); }
+    const res = T(a, b);
+    steps.push("Résultat : " + C(fmt(res)));
+    return { res, steps };
+  },
+};
+
+/* ---- générateurs de données ---- */
+const randList = (n, lo = -2, hi = 9) => Array.from({ length: n }, () => rnd(lo, hi));
+const sortedList = (n, lo = 1, hi = 9) => randList(n, lo, hi).sort((a, b) => a - b);
+const WORDS = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+
+/* registre : arguments attendus, génération, affichage de l'appel */
+const FNS = {
+  map: { label: "map", args: ["fInt", "list"], gen: () => [pick(LAMBDAS.fInt), randList(rnd(3, 5))], call: (f, l) => `map (${f.src}) ${fmt(l)}` },
+  filter: { label: "filter", args: ["pred", "list"], gen: () => [pick(LAMBDAS.pred), randList(rnd(4, 6))], call: (p, l) => `filter (${p.src}) ${fmt(l)}` },
+  for_all: { label: "for_all", args: ["pred", "list"], gen: () => { const p = pick(LAMBDAS.pred); let l = randList(rnd(3, 5)); if (Math.random() < 0.45) { l = l.map((x) => (p.f(x) ? x : null)).filter((x) => x !== null); while (l.length < 3) { const c = rnd(-2, 12); if (p.f(c)) l.push(c); } } return [p, l]; }, call: (p, l) => `for_all (${p.src}) ${fmt(l)}` },
+  exists: { label: "exists", args: ["pred", "list"], gen: () => [pick(LAMBDAS.pred), randList(rnd(3, 5))], call: (p, l) => `exists (${p.src}) ${fmt(l)}` },
+  find: { label: "find", args: ["pred", "list"], gen: () => [pick(LAMBDAS.pred), randList(rnd(3, 5))], call: (p, l) => `find (${p.src}) ${fmt(l)}` },
+  is_sorted: { label: "is_sorted", args: ["ord", "list"], gen: () => { const o = pick(LAMBDAS.ord); let l; if (Math.random() < 0.5) { l = sortedList(rnd(3, 5)); if (o.body.includes(">")) l.reverse(); if (o.body === "x = y") l = Array(rnd(3, 4)).fill(rnd(1, 9)); } else l = randList(rnd(3, 5), 1, 9); return [o, l]; }, call: (o, l) => `is_sorted (${o.src}) ${fmt(l)}` },
+  partition: { label: "partition", args: ["pred", "list"], gen: () => [pick(LAMBDAS.pred), randList(rnd(4, 6))], call: (p, l) => `partition (${p.src}) ${fmt(l)}` },
+  count: { label: "count", args: ["pred", "list"], gen: () => [pick(LAMBDAS.pred), randList(rnd(4, 6))], call: (p, l) => `count (${p.src}) ${fmt(l)}` },
+  shared: { label: "shared", args: ["sorted", "sorted"], gen: () => { const common = randList(rnd(1, 3), 1, 9); const a = [...common, ...randList(rnd(2, 3), 1, 9)].sort((x, y) => x - y); const b = [...common, ...randList(rnd(2, 3), 1, 9)].sort((x, y) => x - y); return [a, b]; }, call: (a, b) => `shared ${fmt(a)} ${fmt(b)}` },
+  rev: { label: "rev", args: ["list"], gen: () => [randList(rnd(3, 5))], call: (l) => `rev ${fmt(l)}` },
+  flatten: { label: "flatten", args: ["lists"], gen: () => [Array.from({ length: rnd(2, 4) }, () => randList(rnd(0, 3), 0, 9))], call: (ll) => `flatten ${fmt(ll)}` },
+  identic: { label: "identic", args: ["list", "list"], gen: () => { const a = randList(rnd(2, 4), 0, 9); const r = Math.random(); const b = r < 0.4 ? a.slice() : r < 0.7 ? [...a, rnd(0, 9)] : a.map((x, i) => (i === a.length - 1 ? x + 1 : x)); return [a, b]; }, call: (a, b) => `identic ${fmt(a)} ${fmt(b)}` },
+  gcd: { label: "gcd", args: ["int", "int"], gen: () => { const k = pick([1, 2, 3, 5, 6, 7, 10, 12, 15]); const a = pick([1, 2, 3, 4, 5, 7, 9]); let b = pick([1, 2, 3, 4, 5, 7, 8, 11]); if (b === a) b = a + 1; return [k * a, k * b]; }, call: (u, v) => `gcd ${fmtA(u)} ${fmtA(v)}` },
+  find_power: { label: "find_power", args: ["int", "int"], gen: () => [rnd(2, 5), rnd(5, 150)], call: (x, n) => `find_power ${fmtA(x)} ${fmtA(n)}` },
+  loop: { label: "loop", args: ["pStop", "fStep", "int"], gen: () => { const combos = [[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 0]]; const [pi, fi] = pick(combos); return [LAMBDAS.pStop[pi], LAMBDAS.fStep[fi], rnd(1, 6)]; }, call: (p, f, x) => `loop (${p.src}) (${f.src}) ${fmtA(x)}` },
+  assoc: { label: "assoc", args: ["int", "kv"], gen: () => { const keys = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, rnd(3, 5)).sort((a, b) => a - b); const lst = keys.map((k) => T(k, S(WORDS[k - 1]))); const r = Math.random(); const k = r < 0.55 ? pick(keys) : r < 0.85 ? pick([1, 2, 3, 4, 5, 6, 7, 8, 9].filter((x) => !keys.includes(x))) : pick([0, -1, -3]); return [k, lst]; }, call: (k, lst) => `assoc ${fmtA(k)} ${fmt(lst)}` },
+  unzip: { label: "unzip", args: ["pairs"], gen: () => { const n = rnd(2, 4); return [Array.from({ length: n }, () => { const k = rnd(1, 9); return T(k, S(WORDS[k - 1])); })]; }, call: (lst) => `unzip ${fmt(lst)}` },
+};
+
+function genPredict(only) {
+  const key = only || pick(Object.keys(FNS));
+  const def = FNS[key];
+  const args = def.gen();
+  const out = RUN[key](...args);
+  return { key, call: def.call(...args), expected: out.res, steps: out.steps };
+}
+
+/* vérifie une réponse « prédire » ; renvoie {ok, msg} */
+function checkPredict(expected, input) {
+  let parsed;
+  try { parsed = parseValue(input); } catch (e) { return { ok: null, msg: e.message + " Écris une valeur OCaml, par exemple [1; 2; 3], (2, 3), true ou Failure." }; }
+  const v = parsed.exc ? parsed : parsed.inf ? parsed : parsed.value;
+  if (expected.exc) {
+    if (v.exc === "?") return { ok: null, msg: "Une exception, oui, mais laquelle ? Écris Failure ou Invalid_argument." };
+    return v.exc === expected.exc ? { ok: true } : { ok: false, msg: v.exc ? "Ce n'est pas la bonne exception." : "Ici, la fonction lève une exception." };
+  }
+  if (v.exc) return { ok: false, msg: "Pas d'exception ici : la fonction renvoie une valeur." };
+  if (deepEq(v, expected)) return { ok: true };
+  if (parsed.commaInList) return { ok: false, msg: "Attention : dans une liste OCaml, on sépare les éléments par « ; ». Avec des virgules, [1, 2] est une liste qui contient un seul couple." };
+  if (Array.isArray(v) && Array.isArray(expected) && v.length === expected.length && deepEq([...v].reverse(), expected)) return { ok: false, msg: "Tu as les bons éléments, mais dans l'ordre inverse." };
+  return { ok: false };
+}
+
+const normCode = (s) => s.replace(/\s+/g, "").replace(/;;$/, "");
+
+if (typeof module !== "undefined" && module.exports) module.exports = { fmt, parseValue, deepEq, RUN, FNS, genPredict, checkPredict, LAMBDAS, T, S, normCode };
+
+/* ===== Contenu : corrections, banques d'exercices ===== */
+const CORRECTIONS = [
+  { key: "identic", td: "TD 1", title: "identic", sub: "Deux listes sont-elles identiques ?",
+    code: `let rec identic l1 l2 = match (l1, l2) with
+  | ([], []) -> true
+  | (e :: q1, f :: q2) -> e = f && identic q1 q2
+  | _ -> false            (* une seule des deux est vide *)`,
+    expl: "On filtre le <b>couple</b> <code>(l1, l2)</code> pour regarder les deux listes à la fois. Le cas <code>_</code>, placé en dernier, attrape tous les cas où les longueurs diffèrent. Les queues s'appellent <code>q1</code> et <code>q2</code> pour ne pas masquer <code>l1</code> et <code>l2</code>." },
+  { key: "shared", td: "TD 1", title: "shared", sub: "Éléments communs de deux listes croissantes",
+    code: `let rec shared l1 l2 = match (l1, l2) with
+  | ([], _) | (_, []) -> []
+  | (e :: q1, f :: q2) ->
+      if e = f then e :: shared q1 q2
+      else if e < f then shared q1 l2     (* on jette e seulement *)
+      else shared l1 q2                   (* on jette f seulement *)`,
+    expl: "Les listes sont triées : on jette uniquement <b>le plus petit</b>, car il ne pourra plus jamais égaler un élément de l'autre liste. On repasse la liste <b>entière</b> (<code>l2</code> ou <code>l1</code>) pour celle qu'on n'avance pas." },
+  { key: "rev", td: "TD 1", title: "rev", sub: "Retourner une liste (quand List.rev est interdit)",
+    code: `let rev l =
+  let rec aux l acc = match l with
+    | [] -> acc
+    | e :: q -> aux q (e :: acc)
+  in aux l []`,
+    expl: "Empiler en tête dans un accumulateur inverse l'ordre : ici, c'est exactement ce qu'on veut. À définir <b>avant</b> les fonctions qui l'utilisent." },
+  { key: "assoc", td: "TD 1", title: "assoc", sub: "Valeur associée à une clé (clés triées)",
+    code: `let assoc k lst =
+  if k <= 0 then invalid_arg "k not a natural"
+  else
+    let rec aux l = match l with
+      | [] -> failwith "not found"
+      | (key, value) :: q ->
+          if key = k then value
+          else if key > k then failwith "not found"   (* déjà trop loin *)
+          else aux q
+    in aux lst`,
+    expl: "La fonction auxiliaire vérifie <code>k</code> une seule fois. Le motif <code>(key, value) :: q</code> découpe le couple directement. Comme les clés sont triées, on s'arrête dès que <code>key &gt; k</code>. <code>invalid_arg</code> pour un mauvais argument, <code>failwith</code> quand on ne trouve pas." },
+  { key: "flatten", td: "TD 1", title: "append et flatten", sub: "Aplatir une liste de listes",
+    code: `let rec append l1 l2 = match l1 with
+  | [] -> l2
+  | e :: q -> e :: append q l2
+
+let rec flatten l = match l with
+  | [] -> []
+  | sl :: q -> append sl (flatten q)`,
+    expl: "<code>append</code> recopie <code>l1</code> élément par élément devant <code>l2</code>. Si l'opérateur <code>@</code> est autorisé, <code>append sl (flatten q)</code> s'écrit <code>sl @ flatten q</code>." },
+  { key: "gcd", td: "TD 1", title: "gcd", sub: "PGCD par facteurs premiers, en une fonction",
+    code: `let gcd u v =
+  if u <= 0 || v <= 0 then invalid_arg "gcd: arguments must be positive"
+  else
+    let rec aux u v d =
+      if u = 1 || v = 1 then 1
+      else if u mod d = 0 && v mod d = 0 then d * aux (u / d) (v / d) d
+      else if u mod d = 0 then aux (u / d) v d
+      else if v mod d = 0 then aux u (v / d) d
+      else aux u v (d + 1)
+    in aux u v 2`,
+    expl: "On décompose les deux nombres <b>en même temps</b> avec le même diviseur <code>d</code> : un facteur commun est multiplié au résultat, un facteur d'un seul côté est retiré sans compter. C'est la logique de <code>shared</code> appliquée aux nombres. Sans le test du début, <code>gcd 0 _</code> boucle à l'infini." },
+  { key: "loop", td: "TD 2", title: "loop", sub: "Appliquer f jusqu'à ce que p soit vrai",
+    code: `let rec loop p f x =
+  if p x then x
+  else loop p f (f x)`,
+    expl: "<code>p</code> <b>vérifie</b>, <code>f</code> <b>avance d'un pas</b>, et <code>loop</code> alterne les deux. On teste d'abord <code>x</code> lui-même (f⁰(x) = x). On garde <code>f</code> identique et on fait avancer la valeur : <code>(f x)</code>, avec les parenthèses." },
+  { key: "find_power", td: "TD 2", title: "find_power", sub: "Première puissance de x supérieure ou égale à n",
+    code: `let find_power x n =
+  let p y = y >= n in      (* on s'arrête quand y >= n *)
+  let f y = y * x in       (* passer à la puissance suivante *)
+  loop p f 1               (* on part de x^0 = 1 *)`,
+    expl: "Pas de <code>rec</code> et pas de <code>if</code> : tout le travail est dans <code>loop</code>, <code>find_power</code> ne fait que la configurer. <code>p</code> et <code>f</code> sont définies à l'intérieur, donc elles « voient » <code>x</code> et <code>n</code>. Version courte : <code>loop (fun y -&gt; y &gt;= n) (fun y -&gt; y * x) 1</code>." },
+  { key: "map", td: "TD 2", title: "map", sub: "Appliquer f à chaque élément",
+    code: `let rec map f lst = match lst with
+  | [] -> []
+  | e :: l -> f e :: map f l`,
+    expl: "On transforme <code>e</code> avec <code>f e</code> et on le met devant le reste transformé. L'application est prioritaire sur <code>::</code>, donc pas besoin de parenthèses. Attention : <code>fe</code> sans espace est une variable inconnue." },
+  { key: "for_all", td: "TD 2", title: "for_all", sub: "Tous les éléments vérifient-ils p ?",
+    code: `let rec for_all p lst = match lst with
+  | [] -> true                  (* vrai par défaut *)
+  | e :: l -> p e && for_all p l`,
+    expl: "La liste vide renvoie <code>true</code> : aucun contre-exemple. <code>&amp;&amp;</code> s'arrête dès que <code>p e</code> est faux, sans regarder la suite." },
+  { key: "exists", td: "TD 2", title: "exists", sub: "Au moins un élément vérifie-t-il p ?",
+    code: `let rec exists p lst = match lst with
+  | [] -> false
+  | e :: l -> p e || exists p l`,
+    expl: "Le miroir de <code>for_all</code> : liste vide → <code>false</code>, et <code>||</code> s'arrête dès que <code>p e</code> est vrai. Avec <code>true</code> sur la liste vide, la fonction répondrait <code>true</code> pour toutes les listes." },
+  { key: "is_sorted", td: "TD 2", title: "is_sorted", sub: "La liste est-elle triée selon order ?",
+    code: `let rec is_sorted order lst = match lst with
+  | [] | [_] -> true
+  | e :: f :: l -> order e f && is_sorted order (f :: l)`,
+    expl: "<code>order</code> compare <b>deux</b> éléments, d'où le motif <code>e :: f :: l</code>. Le cas <code>[_]</code> est obligatoire : toute liste triée non vide finit par lui. On rappelle sur <code>(f :: l)</code> et pas sur <code>l</code>, pour comparer <code>f</code> avec son voisin." },
+  { key: "find", td: "TD 2", title: "find", sub: "Premier élément qui vérifie p",
+    code: `let rec find p lst = match lst with
+  | [] -> failwith "not found"
+  | e :: l -> if p e then e else find p l`,
+    expl: "<code>find</code> renvoie un <b>élément</b>, pas un booléen. Quand rien ne correspond, il n'y a aucune valeur à renvoyer : on lève une exception." },
+  { key: "filter", td: "TD 2", title: "filter", sub: "Garder les éléments qui vérifient p",
+    code: `let rec filter p lst = match lst with
+  | [] -> []
+  | e :: l -> if p e then e :: filter p l else filter p l`,
+    expl: "Si <code>p e</code> est vrai, on garde <code>e</code> devant le résultat ; sinon on le jette et on continue. L'ordre est conservé." },
+  { key: "partition", td: "TD 2", title: "partition", sub: "Séparer selon p (bonus : ordre conservé)",
+    code: `let rec partition p lst = match lst with
+  | [] -> ([], [])
+  | e :: l ->
+      let (l1, l2) = partition p l in
+      if p e then (e :: l1, l2)
+      else (l1, e :: l2)`,
+    expl: "On traite d'abord le reste, on découpe le couple renvoyé avec <code>let (l1, l2) = ... in</code>, puis on place <code>e</code> devant la bonne liste. L'ordre est conservé sans <code>rev</code>. Avec des accumulateurs, il faudrait faire <code>(rev l1, rev l2)</code> à la fin." },
+  { key: "unzip", td: "Bonus", title: "unzip", sub: "Couper une liste de couples en deux listes",
+    code: `let rec unzip lst = match lst with
+  | [] -> ([], [])
+  | (a, b) :: l ->
+      let (l1, l2) = unzip l in
+      (a :: l1, b :: l2)`,
+    expl: "Même squelette que <code>partition</code>, sans prédicat : chaque morceau du couple a toujours sa place." },
+  { key: "count", td: "Bonus", title: "count", sub: "Compter les oui et les non",
+    code: `let rec count p lst = match lst with
+  | [] -> (0, 0)
+  | e :: l ->
+      let (oui, non) = count p l in
+      if p e then (oui + 1, non)
+      else (oui, non + 1)`,
+    expl: "C'est <code>partition</code> avec des nombres : <code>(0, 0)</code> au lieu de <code>([], [])</code>, et <code>+ 1</code> au lieu de <code>e ::</code>." },
+];
+
+/* ---- Trouve l'erreur ---- */
+const BUGS = [
+  { fn: "exists", code: `let rec exists p lst = match lst with
+  | [] -> true
+  | e :: l -> if p e then true else exists p l`,
+    good: "Le cas de base doit renvoyer false : avec true, la fonction répond true pour toutes les listes.",
+    bad: ["Il faut écrire p e = true au lieu de p e.", "L'appel récursif doit se faire sur e :: l.", "Il manque un cas [_] -> false."],
+    expl: "La récursion finit toujours sur <code>[]</code>. Si on y renvoie <code>true</code>, <code>exists (fun x -&gt; x &gt; 10) [1; 2]</code> répond <code>true</code>." },
+  { fn: "loop", code: `let rec loop p f x =
+  if p (f x) then x
+  else loop p f (f x)`,
+    good: "On teste f x mais on renvoie x : le résultat a un cran de retard, et le cas n = 0 est sauté.",
+    bad: ["Il manque le mot-clé rec.", "Il faudrait écrire loop p (f x) x.", "Il faut un match à la place du if."],
+    expl: "Ce qu'on teste et ce qu'on renvoie doivent être la même valeur : <code>if p x then x</code>. Avec doubler-jusqu'à-10 en partant de 1, ce code renvoie 8 au lieu de 16." },
+  { fn: "map", code: `let rec map f lst = match lst with
+  | [] -> []
+  | e :: l -> fe :: map f l`,
+    good: "fe sans espace est lu comme une variable inconnue : il faut f e.",
+    bad: ["Il faut des parenthèses : (map f l).", "Le cas vide doit renvoyer lst.", "Il faut écrire f(e) comme en Python."],
+    expl: "OCaml lit <code>fe</code> comme un seul nom : « Unbound value fe ». L'application s'écrit avec un espace : <code>f e</code>." },
+  { fn: "is_sorted", code: `let rec is_sorted order lst = match lst with
+  | [] -> true
+  | e :: f :: l -> order e f && is_sorted order (f :: l)`,
+    good: "Il manque le cas d'une liste à un seul élément : toute liste triée non vide finit par planter.",
+    bad: ["Il faut rappeler sur l au lieu de f :: l.", "Le cas vide doit renvoyer false.", "order e f doit s'écrire order (e, f)."],
+    expl: "<code>[3]</code> ne correspond ni à <code>[]</code> ni à <code>e :: f :: l</code> : <code>Match_failure</code>. Il faut <code>| [_] -&gt; true</code>." },
+  { fn: "is_sorted", code: `let rec is_sorted order lst = match lst with
+  | [] | [_] -> true
+  | e :: f :: l -> order e f && is_sorted order l`,
+    good: "L'appel récursif saute f : on ne compare jamais f avec son voisin suivant.",
+    bad: ["Il manque des parenthèses autour de order e f.", "[_] doit renvoyer false.", "Il faut un if à la place de &&."],
+    expl: "Avec <code>[1; 3; 2]</code> : 1 &lt; 3, puis il reste <code>[2]</code> → <code>true</code>, alors que la liste n'est pas triée. Il faut rappeler sur <code>(f :: l)</code>." },
+  { fn: "shared", code: `let rec shared l1 l2 = match (l1, l2) with
+  | ([], _) | (_, []) -> []
+  | (e :: q1, f :: q2) ->
+      if e = f then e :: shared q1 q2
+      else shared q1 q2`,
+    good: "Quand e ≠ f, on jette les deux éléments : le plus grand pouvait encore apparaître plus loin.",
+    bad: ["Le cas de base doit renvoyer l1.", "Il faut écrire e == f.", "Il manque rec."],
+    expl: "Avec <code>[1; 2; 3]</code> et <code>[3]</code> : 1 ≠ 3, on jette 1 <b>et</b> 3, et le 3 est perdu. On ne jette que le plus petit." },
+  { fn: "identic", code: `let rec identic l1 l2 = match (l1, l2) with
+  | ([], []) -> true
+  | (e :: l1, f :: l2) -> if e = f then identic (e :: l1) (f :: l2) else false
+  | _ -> false`,
+    good: "L'appel récursif se fait sur les mêmes listes : la récursion ne s'arrête jamais.",
+    bad: ["Le cas _ -> false doit être en premier.", "Il faut écrire e == f.", "Le premier cas doit renvoyer false."],
+    expl: "Rappeler sur <code>(e :: l1) (f :: l2)</code>, c'est rappeler sur les listes de départ : stack overflow. Il faut appeler sur les queues." },
+  { fn: "for_all", code: `let rec for_all p lst = match lst with
+  | [] -> True
+  | e :: l -> p e && for_all p l`,
+    good: "Les booléens s'écrivent en minuscules : True est pris pour un constructeur.",
+    bad: ["Le cas vide doit renvoyer false.", "Il faut || à la place de &&.", "Il manque un cas [_]."],
+    expl: "OCaml répond « Unbound constructor True ». On écrit <code>true</code> et <code>false</code>." },
+  { fn: "find_power", code: `let find_power x n =
+  let p y = y >= n in
+  let f y = y * x in
+  loop p f 0`,
+    good: "On part de 0 : en multipliant par x on reste à 0 pour toujours. Il faut partir de x⁰ = 1.",
+    bad: ["Il manque rec.", "p devrait être y > n.", "f devrait être y + x."],
+    expl: "0 × x = 0 : la valeur ne grandit jamais, la boucle ne termine pas (dès que n &gt; 0)." },
+  { fn: "filter", code: `let rec filter p lst = match lst with
+  | [] -> []
+  | e :: l -> if p e then e :: filter p l else l`,
+    good: "Quand p e est faux, on renvoie l sans le filtrer : la suite n'est jamais vérifiée.",
+    bad: ["Il faut (e :: filter p l) avec des parenthèses.", "Le cas vide doit renvoyer lst.", "Il faut tester p l."],
+    expl: "Avec « pair » et <code>[1; 3; 5]</code>, on obtient <code>[3; 5]</code>. Il faut <code>else filter p l</code>." },
+  { fn: "rev", code: `let rev l =
+  let rec aux l acc = match l with
+    | [] -> acc
+    | e :: q -> e :: aux q acc
+  in aux l []`,
+    good: "On met e devant le résultat au lieu de l'empiler dans acc : la liste ressort dans le même ordre.",
+    bad: ["Le cas vide doit renvoyer [].", "Il faut appeler aux l [] dans le cas e :: q.", "Il manque rec devant rev."],
+    expl: "Pour retourner, il faut empiler dans l'accumulateur : <code>aux q (e :: acc)</code>." },
+  { fn: "assoc", code: `let assoc k lst =
+  if k < 0 then invalid_arg "k not a natural"
+  else
+    let rec aux l = match l with
+      | [] -> failwith "not found"
+      | (key, value) :: q -> if key = k then value else aux q
+    in aux lst`,
+    good: "Le test devrait être k <= 0 : les clés sont non nulles, donc 0 est aussi invalide.",
+    bad: ["Il faut failwith à la place de invalid_arg.", "Le motif doit être key :: value :: q.", "aux doit prendre k en paramètre."],
+    expl: "L'énoncé dit « entiers naturels <b>non nuls</b> ». Le code n'utilise pas non plus le tri des clés pour s'arrêter tôt, mais ce n'est pas une erreur de résultat." },
+  { fn: "count", code: `let rec count p lst = match lst with
+  | [] -> ([], [])
+  | e :: l ->
+      let (oui, non) = count p l in
+      if p e then (oui + 1, non) else (oui, non + 1)`,
+    good: "Le cas de base renvoie deux listes alors qu'on compte : il faut (0, 0). Erreur de type.",
+    bad: ["Il faut rappeler count p e.", "let (oui, non) doit s'écrire let oui, non = ... sans in.", "Il manque un else."],
+    expl: "<code>oui + 1</code> demande un <code>int</code>, mais le cas vide fournit des listes : OCaml refuse de compiler." },
+  { fn: "gcd", code: `let gcd u v =
+  let rec aux u v d =
+    if u = 1 || v = 1 then 1
+    else if u mod d = 0 && v mod d = 0 then d * aux (u / d) (v / d) d
+    else if u mod d = 0 then aux (u / d) v d
+    else if v mod d = 0 then aux u (v / d) d
+    else aux u v (d + 1)
+  in aux u v 2`,
+    good: "Il manque la vérification u > 0 et v > 0 : gcd 0 5 ne termine jamais.",
+    bad: ["Il faut partir de d = 1.", "Le premier test doit renvoyer 0.", "aux doit être déclarée avec let tout seul."],
+    expl: "<code>0 mod d = 0</code> pour tout <code>d</code> et <code>0 / d = 0</code> : on divise à l'infini sans jamais atteindre 1." },
+];
+
+/* ---- Complète le code ---- */
+const FILLS = [
+  { fn: "for_all", code: `let rec for_all p lst = match lst with
+  | [] -> ____
+  | e :: l -> p e && for_all p l`, ans: ["true"], expl: "Vrai par défaut : il n'y a aucun contre-exemple dans une liste vide." },
+  { fn: "exists", code: `let rec exists p lst = match lst with
+  | [] -> ____
+  | e :: l -> p e || exists p l`, ans: ["false"], expl: "Aucun élément ne peut vérifier p dans une liste vide." },
+  { fn: "map", code: `let rec map f lst = match lst with
+  | [] -> []
+  | e :: l -> ____ :: map f l`, ans: ["f e", "(f e)"], expl: "On applique f à e, avec un espace : f e." },
+  { fn: "filter", code: `let rec filter p lst = match lst with
+  | [] -> []
+  | e :: l -> if p e then e :: filter p l else ____`, ans: ["filter p l", "(filter p l)"], expl: "On jette e, mais on continue à filtrer le reste." },
+  { fn: "is_sorted", code: `let rec is_sorted order lst = match lst with
+  | [] | [_] -> true
+  | e :: f :: l -> order e f && is_sorted order ____`, ans: ["(f :: l)"], expl: "On garde f pour le comparer à son voisin suivant. Les parenthèses sont obligatoires." },
+  { fn: "is_sorted", code: `let rec is_sorted order lst = match lst with
+  | [] | ____ -> true
+  | e :: f :: l -> order e f && is_sorted order (f :: l)`, ans: ["[_]", "[x]", "[e]", "_ :: []"], expl: "La liste à un seul élément est triée et ne correspond pas au motif à deux éléments." },
+  { fn: "loop", code: `let rec loop p f x =
+  if p x then x
+  else loop p f ____`, ans: ["(f x)"], expl: "On garde f et on fait avancer la valeur. Sans parenthèses, f et x seraient deux arguments séparés." },
+  { fn: "find_power", code: `let find_power x n =
+  let p y = y >= n in
+  let f y = y * x in
+  loop p f ____`, ans: ["1"], expl: "On part de x⁰ = 1." },
+  { fn: "find_power", code: `let find_power x n =
+  let p y = ____ in
+  let f y = y * x in
+  loop p f 1`, ans: ["y >= n", "n <= y"], expl: "On s'arrête à la première puissance supérieure ou égale à n." },
+  { fn: "rev", code: `let rev l =
+  let rec aux l acc = match l with
+    | [] -> acc
+    | e :: q -> aux q ____
+  in aux l []`, ans: ["(e :: acc)"], expl: "On empile e en tête de l'accumulateur." },
+  { fn: "partition", code: `let rec partition p lst = match lst with
+  | [] -> ([], [])
+  | e :: l ->
+      let (l1, l2) = partition p l in
+      if p e then ____ else (l1, e :: l2)`, ans: ["(e :: l1, l2)"], expl: "e vérifie p : il va devant la liste de gauche, la droite ne change pas." },
+  { fn: "count", code: `let rec count p lst = match lst with
+  | [] -> ____
+  | e :: l ->
+      let (oui, non) = count p l in
+      if p e then (oui + 1, non) else (oui, non + 1)`, ans: ["(0, 0)"], expl: "On compte : deux compteurs à zéro." },
+  { fn: "unzip", code: `let rec unzip lst = match lst with
+  | [] -> ([], [])
+  | ____ :: l ->
+      let (l1, l2) = unzip l in
+      (a :: l1, b :: l2)`, ans: ["(a, b)"], expl: "On découpe le premier couple directement dans le motif." },
+  { fn: "shared", code: `let rec shared l1 l2 = match (l1, l2) with
+  | ([], _) | (_, []) -> []
+  | (e :: q1, f :: q2) ->
+      if e = f then e :: shared q1 q2
+      else if e < f then shared ____
+      else shared l1 q2`, ans: ["q1 l2"], expl: "e est le plus petit : on le jette (q1) et on garde la liste 2 entière (l2)." },
+  { fn: "find", code: `let rec find p lst = match lst with
+  | [] -> ____ "not found"
+  | e :: l -> if p e then e else find p l`, ans: ["failwith"], expl: "On ne trouve pas : Failure, avec failwith." },
+  { fn: "assoc", code: `let assoc k lst =
+  if k <= 0 then ____ "k not a natural"
+  else ...`, ans: ["invalid_arg"], expl: "L'argument lui-même est mauvais : Invalid_argument, avec invalid_arg." },
+  { fn: "flatten", code: `let rec append l1 l2 = match l1 with
+  | [] -> ____
+  | e :: q -> e :: append q l2`, ans: ["l2"], expl: "Plus rien à recopier : il reste l2." },
+  { fn: "gcd", code: `let gcd u v =
+  ...
+    let rec aux u v d =
+      if u = 1 || v = 1 then ____
+      else ...`, ans: ["1"], expl: "Plus de facteur commun possible : 1, l'élément neutre de la multiplication." },
+];
+
+/* ---- Écris la fonction (corrigée par Claude) ---- */
+const WRITES = [
+  { name: "length", sig: "'a list -> int", spec: "Renvoie le nombre d'éléments de la liste.", ex: [["length [4; 1; 7]", "3"], ["length []", "0"]],
+    sol: `let rec length lst = match lst with
+  | [] -> 0
+  | _ :: l -> 1 + length l`, hints: ["Liste vide : 0 élément.", "Pour e :: l : un élément de plus que la longueur de l."] },
+  { name: "sum", sig: "int list -> int", spec: "Renvoie la somme des éléments de la liste.", ex: [["sum [1; 2; 3]", "6"], ["sum []", "0"]],
+    sol: `let rec sum lst = match lst with
+  | [] -> 0
+  | e :: l -> e + sum l`, hints: ["0 est l'élément neutre de l'addition.", "e + (somme du reste)."] },
+  { name: "mem", sig: "'a -> 'a list -> bool", spec: "mem x lst vérifie si x apparaît dans lst.", ex: [["mem 3 [1; 3; 5]", "true"], ["mem 4 [1; 3; 5]", "false"]],
+    sol: `let rec mem x lst = match lst with
+  | [] -> false
+  | e :: l -> e = x || mem x l`, hints: ["C'est exists avec le prédicat « égal à x ».", "Liste vide : false."] },
+  { name: "max_list", sig: "int list -> int", spec: "Renvoie le plus grand élément. Lève Invalid_argument \"empty list\" si la liste est vide.", ex: [["max_list [3; 9; 2]", "9"], ["max_list []", "Exception: Invalid_argument \"empty list\""]],
+    sol: `let rec max_list lst = match lst with
+  | [] -> invalid_arg "empty list"
+  | [x] -> x
+  | e :: l -> let m = max_list l in if e > m then e else m`, hints: ["Le cas de base utile est [x] : le max, c'est x.", "Compare e avec le max du reste."] },
+  { name: "nth", sig: "'a list -> int -> 'a", spec: "nth lst n renvoie l'élément d'indice n (le premier a l'indice 0). Lève Failure \"too short\" si la liste est trop courte, Invalid_argument \"negative\" si n < 0.", ex: [["nth [5; 6; 7] 1", "6"], ["nth [5] 3", "Exception: Failure \"too short\""]],
+    sol: `let nth lst n =
+  if n < 0 then invalid_arg "negative"
+  else
+    let rec aux lst n = match lst with
+      | [] -> failwith "too short"
+      | e :: l -> if n = 0 then e else aux l (n - 1)
+    in aux lst n`, hints: ["Vérifie n < 0 une seule fois, dans une fonction auxiliaire comme assoc.", "À chaque pas, n diminue de 1."] },
+  { name: "last", sig: "'a list -> 'a", spec: "Renvoie le dernier élément. Lève Failure \"empty\" si la liste est vide.", ex: [["last [1; 2; 3]", "3"], ["last [8]", "8"]],
+    sol: `let rec last lst = match lst with
+  | [] -> failwith "empty"
+  | [x] -> x
+  | _ :: l -> last l`, hints: ["Le motif [x] reconnaît le dernier élément.", "Attention à l'ordre des cas."] },
+  { name: "count_occ", sig: "'a -> 'a list -> int", spec: "count_occ x lst renvoie le nombre de fois où x apparaît dans lst.", ex: [["count_occ 2 [2; 1; 2; 2]", "3"], ["count_occ 5 []", "0"]],
+    sol: `let rec count_occ x lst = match lst with
+  | [] -> 0
+  | e :: l -> (if e = x then 1 else 0) + count_occ x l`, hints: ["Comme sum, mais on ajoute 1 seulement quand e = x."] },
+  { name: "remove", sig: "'a -> 'a list -> 'a list", spec: "remove x lst renvoie lst sans aucune occurrence de x.", ex: [["remove 2 [2; 1; 2; 3]", "[1; 3]"], ["remove 9 [1; 2]", "[1; 2]"]],
+    sol: `let rec remove x lst = match lst with
+  | [] -> []
+  | e :: l -> if e = x then remove x l else e :: remove x l`, hints: ["C'est filter avec le prédicat « différent de x »."] },
+  { name: "insert", sig: "int -> int list -> int list", spec: "insert x lst insère x à sa place dans une liste triée par ordre croissant.", ex: [["insert 4 [1; 3; 5; 7]", "[1; 3; 4; 5; 7]"], ["insert 0 []", "[0]"]],
+    sol: `let rec insert x lst = match lst with
+  | [] -> [x]
+  | e :: l -> if x <= e then x :: lst else e :: insert x l`, hints: ["Liste vide : la liste à un élément [x].", "Si x <= e, x va juste devant toute la liste."] },
+  { name: "min_max", sig: "int list -> int * int", spec: "Renvoie le couple (plus petit, plus grand) d'une liste non vide. Lève Invalid_argument \"empty list\" sur la liste vide.", ex: [["min_max [3; 1; 4; 1; 5]", "(1, 5)"], ["min_max [7]", "(7, 7)"]],
+    sol: `let rec min_max lst = match lst with
+  | [] -> invalid_arg "empty list"
+  | [x] -> (x, x)
+  | e :: l ->
+      let (mi, ma) = min_max l in
+      ((if e < mi then e else mi), (if e > ma then e else ma))`, hints: ["Cas de base : [x] donne (x, x).", "Comme partition : let (mi, ma) = min_max l in ..."] },
+  { name: "zip", sig: "'a list -> 'b list -> ('a * 'b) list", spec: "zip l1 l2 fait la liste des couples. Lève Invalid_argument \"different lengths\" si les longueurs diffèrent.", ex: [["zip [1; 2] [\"a\"; \"b\"]", "[(1, \"a\"); (2, \"b\")]"], ["zip [1] []", "Exception: Invalid_argument \"different lengths\""]],
+    sol: `let rec zip l1 l2 = match (l1, l2) with
+  | ([], []) -> []
+  | (a :: q1, b :: q2) -> (a, b) :: zip q1 q2
+  | _ -> invalid_arg "different lengths"`, hints: ["Le contraire de unzip.", "Filtre le couple (l1, l2), comme identic."] },
+  { name: "range", sig: "int -> int -> int list", spec: "range a b renvoie la liste des entiers de a à b inclus (vide si a > b).", ex: [["range 2 5", "[2; 3; 4; 5]"], ["range 3 1", "[]"]],
+    sol: `let rec range a b =
+  if a > b then []
+  else a :: range (a + 1) b`, hints: ["Pas de match ici : on récurse sur un nombre.", "a devant la liste de a + 1 à b."] },
+  { name: "apply_n", sig: "('a -> 'a) -> int -> 'a -> 'a", spec: "apply_n f n x applique n fois f à x.", ex: [["apply_n (fun x -> x * 2) 3 1", "8"], ["apply_n (fun x -> x + 1) 0 5", "5"]],
+    sol: `let rec apply_n f n x =
+  if n = 0 then x
+  else apply_n f (n - 1) (f x)`, hints: ["Cousin de loop : au lieu d'un prédicat, un compteur.", "n = 0 : on n'applique rien."] },
+  { name: "compress", sig: "'a list -> 'a list", spec: "Supprime les doublons consécutifs.", ex: [["compress [1; 1; 2; 3; 3; 3; 1]", "[1; 2; 3; 1]"], ["compress []", "[]"]],
+    sol: `let rec compress lst = match lst with
+  | e :: f :: l -> if e = f then compress (f :: l) else e :: compress (f :: l)
+  | _ -> lst`, hints: ["Comme is_sorted : motif e :: f :: l.", "Les listes de 0 ou 1 élément restent telles quelles."] },
+  { name: "take", sig: "int -> 'a list -> 'a list", spec: "take n lst renvoie les n premiers éléments (toute la liste si elle est plus courte).", ex: [["take 2 [5; 6; 7]", "[5; 6]"], ["take 4 [1]", "[1]"]],
+    sol: `let rec take n lst = match lst with
+  | [] -> []
+  | e :: l -> if n <= 0 then [] else e :: take (n - 1) l`, hints: ["Deux façons de s'arrêter : liste vide, ou n arrivé à 0."] },
+  { name: "is_palindrome", sig: "'a list -> bool", spec: "Vérifie si la liste se lit pareil dans les deux sens. Tu peux réutiliser rev et identic.", ex: [["is_palindrome [1; 2; 1]", "true"], ["is_palindrome [1; 2]", "false"]],
+    sol: `let is_palindrome lst = identic lst (rev lst)`, hints: ["Une liste est un palindrome si elle est égale à son retournement."] },
+];
+
+
+/* ================= Interface ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const md = (s) => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+
+function hl(src) {
+  const re = /(\(\*[\s\S]*?\*\))|("(?:[^"\\]|\\.)*")|\b(let|rec|in|match|with|fun|function|if|then|else|true|false|failwith|invalid_arg|mod|not|when|and)\b|\b(\d+)\b|(->|::|&&|\|\||<>|>=|<=|[=<>|@*+\-/])|(____)/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const t = esc(m[0]);
+    out += m[1] ? `<span class="c">${t}</span>` : m[2] ? `<span class="s">${t}</span>` : m[3] ? `<span class="k">${t}</span>` : m[4] ? `<span class="n">${t}</span>` : m[5] ? `<span class="o">${t}</span>` : `<span class="blank">?</span>`;
+    last = re.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+const codeBlock = (src) => `<pre class="code"><code>${hl(src)}</code></pre>`;
+$$("pre[data-hl]").forEach((p) => { p.innerHTML = `<code>${hl(p.textContent)}</code>`; });
+
+/* ---- stockage local (confort seulement) ---- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("atelier-ocaml:" + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("atelier-ocaml:" + k, JSON.stringify(v)); } catch {} },
+};
+
+/* ---- score ---- */
+let score = store.get("score", { ok: 0, tot: 0, streak: 0 });
+function renderScore() { $("#sc-ok").textContent = score.ok; $("#sc-tot").textContent = score.tot; $("#sc-streak").textContent = score.streak; }
+function record(ok) { score.tot++; if (ok) { score.ok++; score.streak++; } else score.streak = 0; store.set("score", score); renderScore(); }
+$("#sc-reset").addEventListener("click", () => { score = { ok: 0, tot: 0, streak: 0 }; store.set("score", score); renderScore(); });
+renderScore();
+
+/* ---- onglets ---- */
+function showTab(name) {
+  $$("nav.tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  ["cours", "corrections", "exercices"].forEach((id) => { $("#" + id).hidden = id !== name; });
+  store.set("tab", name);
+}
+$$("nav.tabs button").forEach((b) => b.addEventListener("click", () => { showTab(b.dataset.tab); window.scrollTo({ top: 0 }); }));
+const initialTab = ["cours", "corrections", "exercices"].includes(location.hash.slice(1)) ? location.hash.slice(1) : store.get("tab", "exercices");
+showTab(initialTab);
+
+/* ================= Corrections + Essayer ================= */
+const ARG_UI = {
+  fInt: { label: "f", type: "select", pool: "fInt" }, pred: { label: "p", type: "select", pool: "pred" }, ord: { label: "order", type: "select", pool: "ord" },
+  fStep: { label: "f", type: "select", pool: "fStep" }, pStop: { label: "p", type: "select", pool: "pStop" },
+  list: { label: "liste", type: "value" }, sorted: { label: "liste croissante", type: "value" }, lists: { label: "liste de listes", type: "value" },
+  int: { label: "entier", type: "value" }, kv: { label: "liste (clé, valeur)", type: "value" }, pairs: { label: "liste de couples", type: "value" },
+};
+const TRY_KEYS = { flatten: "flatten" };
+function tryArgsLabel(key, i) {
+  const names = { gcd: ["u", "v"], find_power: ["x", "n"], loop: ["p", "f", "x"], assoc: ["k", "lst"], shared: ["l1", "l2"], identic: ["l1", "l2"] };
+  return (names[key] && names[key][i]) || ARG_UI[FNS[key].args[i]].label;
+}
+function buildTry(key) {
+  const def = FNS[key]; if (!def) return "";
+  const sample = def.gen();
+  const rows = def.args.map((kind, i) => {
+    const ui = ARG_UI[kind]; const id = `try-${key}-${i}`;
+    if (ui.type === "select") {
+      const opts = LAMBDAS[ui.pool].map((l) => `<option value="${esc(l.src)}"${l.src === sample[i].src ? " selected" : ""}>${esc(l.src)}</option>`).join("");
+      return `<div class="try-row"><label for="${id}">${esc(tryArgsLabel(key, i))}</label><select class="mono" id="${id}">${opts}</select></div>`;
+    }
+    return `<div class="try-row"><label for="${id}">${esc(tryArgsLabel(key, i))}</label><input class="mono" type="text" id="${id}" value="${esc(fmt(sample[i]))}" spellcheck="false" autocomplete="off"></div>`;
+  }).join("");
+  return `<div class="try" data-try="${key}"><div class="eyebrow">Essayer</div>${rows}<div><button class="btn small" type="button" data-run="${key}">Exécuter pas à pas</button></div><div class="try-out"></div></div>`;
+}
+function runTry(key, box) {
+  const def = FNS[key]; const out = $(".try-out", box);
+  try {
+    const args = def.args.map((kind, i) => {
+      const el = $(`#try-${key}-${i}`, box); const ui = ARG_UI[kind];
+      if (ui.type === "select") return lamBySrc(el.value);
+      const pv = parseValue(el.value); if (pv.exc || pv.inf) throw new Error("Valeur attendue pour " + tryArgsLabel(key, i) + ".");
+      const v = pv.value;
+      if (kind === "int" && typeof v !== "number") throw new Error(tryArgsLabel(key, i) + " doit être un entier.");
+      if (["list", "sorted"].includes(kind) && (!Array.isArray(v) || v.some((x) => typeof x !== "number"))) throw new Error(tryArgsLabel(key, i) + " doit être une liste d'entiers, par exemple [1; 2; 3].");
+      if (kind === "sorted" && v.some((x, j) => j && x < v[j - 1])) throw new Error(tryArgsLabel(key, i) + " doit être croissante.");
+      if (kind === "lists" && (!Array.isArray(v) || v.some((x) => !Array.isArray(x)))) throw new Error("Il faut une liste de listes, par exemple [[1; 2]; [3]].");
+      if ((kind === "kv" || kind === "pairs") && (!Array.isArray(v) || v.some((x) => !x || !x.t || x.t.length !== 2))) throw new Error('Il faut une liste de couples, par exemple [(1, "one"); (2, "two")].');
+      if (kind === "kv" && v.some((x, j) => j && x.t[0] <= v[j - 1].t[0])) throw new Error("Les clés doivent être triées par ordre croissant.");
+      return v;
+    });
+    if (key === "gcd" && (args[0] > 100000 || args[1] > 100000)) throw new Error("Choisis des nombres plus petits (≤ 100 000).");
+    const r = RUN[key](...args);
+    out.innerHTML = `<div class="feedback ok"><div class="muted"><code>${esc(def.call(...args))}</code></div><div class="verdict">${esc(fmt(r.res))}</div><ol class="steps">${r.steps.map((s) => `<li>${md(s)}</li>`).join("")}</ol></div>`;
+  } catch (e) {
+    out.innerHTML = `<div class="feedback no"><div>${esc(e.message)}</div></div>`;
+  }
+}
+function renderCards() {
+  const q = $("#search").value.trim().toLowerCase();
+  const td = $$(".chip[data-td]").find((c) => c.getAttribute("aria-pressed") === "true").dataset.td;
+  const list = CORRECTIONS.filter((c) => (td === "all" || c.td === td) && (!q || (c.title + " " + c.sub).toLowerCase().includes(q)));
+  $("#cards").innerHTML = list.length ? list.map((c) => `
+    <details class="card" id="c-${c.key}">
+      <summary><span class="card-title">${esc(c.title)}</span><span class="card-sub">${esc(c.sub)}</span><span class="tag">${esc(c.td)}</span></summary>
+      <div class="card-body">${codeBlock(c.code)}<p>${c.expl}</p>${buildTry(c.key)}</div>
+    </details>`).join("") : `<p class="muted">Aucune fonction ne correspond à « ${esc(q)} ».</p>`;
+}
+$("#search").addEventListener("input", renderCards);
+$$(".chip[data-td]").forEach((c) => c.addEventListener("click", () => { $$(".chip[data-td]").forEach((x) => x.setAttribute("aria-pressed", String(x === c))); renderCards(); }));
+$("#cards").addEventListener("click", (e) => { const b = e.target.closest("[data-run]"); if (b) runTry(b.dataset.run, b.closest(".try")); });
+renderCards();
+
+/* ================= Exercices ================= */
+let mode = store.get("mode", "mix");
+let current = null;
+const work = $("#work");
+const modeName = { predict: "Prédis le résultat", bug: "Trouve l'erreur", fill: "Complète le code", write: "Écris la fonction" };
+
+function setMode(m) { mode = m; store.set("mode", m); $$(".mode").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === m))); nextExercise(); }
+$$(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+
+let lastPick = {};
+function pickFresh(arr, tag) { let i; do { i = Math.floor(Math.random() * arr.length); } while (arr.length > 1 && i === lastPick[tag]); lastPick[tag] = i; return arr[i]; }
+
+function head(kind, extra = "") {
+  return `<div class="work-head"><span class="eyebrow">${esc(modeName[kind])}</span>${extra}<button class="btn ghost small" type="button" id="next">Exercice suivant</button></div>`;
+}
+function linkTo(fn) { return CORRECTIONS.find((c) => c.key === fn) ? `<button class="btn ghost small" type="button" data-goto="${fn}">Revoir la correction de ${esc(fn)}</button>` : ""; }
+
+function nextExercise() {
+  const kind = mode === "mix" ? pick(["predict", "predict", "bug", "fill", "write"]) : mode;
+  if (kind === "predict") renderPredict();
+  else if (kind === "bug") renderBug();
+  else if (kind === "fill") renderFill();
+  else renderWrite();
+}
+work.addEventListener("click", (e) => {
+  if (e.target.closest("#next")) nextExercise();
+  const g = e.target.closest("[data-goto]");
+  if (g) { showTab("corrections"); $("#search").value = ""; $$(".chip[data-td]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.td === "all"))); renderCards(); const d = $("#c-" + g.dataset.goto); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); } }
+});
+
+/* ---- Prédis le résultat ---- */
+function renderPredict() {
+  const ex = genPredict(); current = { kind: "predict", ex, done: false };
+  work.innerHTML = `${head("predict")}
+    <div class="q">Que renvoie cet appel ?</div>
+    ${codeBlock(ex.call)}
+    <form class="answer-row" id="pf"><input class="mono" type="text" id="pin" placeholder="ex. [1; 2; 3]   (2, 3)   true   Failure" autocomplete="off" spellcheck="false" aria-label="Ta réponse"><button class="btn" type="submit">Vérifier</button></form>
+    <p class="muted">Écris la valeur comme OCaml l'afficherait. Si l'appel lève une exception, écris son nom : <code>Failure</code> ou <code>Invalid_argument</code>.</p>
+    <div id="pfb"></div>`;
+  $("#pin").focus({ preventScroll: true });
+  $("#pf").addEventListener("submit", (e) => {
+    e.preventDefault(); if (current.done) return;
+    const r = checkPredict(ex.expected, $("#pin").value);
+    const steps = `<ol class="steps">${ex.steps.map((s) => `<li>${md(s)}</li>`).join("")}</ol>`;
+    if (r.ok === null) { $("#pfb").innerHTML = `<div class="feedback mid"><div class="verdict">Je n'ai pas compris</div><div>${esc(r.msg)}</div></div>`; return; }
+    current.done = true; record(r.ok);
+    $("#pfb").innerHTML = r.ok
+      ? `<div class="feedback ok"><div class="verdict">Juste !</div><div>Résultat : <code>${esc(fmt(ex.expected))}</code></div><details><summary class="muted">Voir le déroulé</summary>${steps}</details></div>`
+      : `<div class="feedback no"><div class="verdict">Pas tout à fait</div>${r.msg ? `<div>${esc(r.msg)}</div>` : ""}<div>Bonne réponse : <code>${esc(fmt(ex.expected))}</code></div><div><b>Le déroulé :</b></div>${steps}<div>${linkTo(ex.key)}</div></div>`;
+    $("#pin").disabled = true; $("#pf button").disabled = true;
+  });
+}
+
+/* ---- Trouve l'erreur ---- */
+function renderBug() {
+  const b = pickFresh(BUGS, "bug");
+  const opts = shuffle([{ t: b.good, ok: true }, ...b.bad.map((t) => ({ t, ok: false }))]);
+  current = { kind: "bug", done: false };
+  work.innerHTML = `${head("bug")}
+    <div class="q">Ce code de <code>${esc(b.fn)}</code> contient une erreur. Laquelle ?</div>
+    ${codeBlock(b.code)}
+    <div class="options">${opts.map((o, i) => `<button class="opt" type="button" data-i="${i}">${esc(o.t)}</button>`).join("")}</div>
+    <div id="bfb"></div>`;
+  $$(".opt", work).forEach((btn) => btn.addEventListener("click", () => {
+    if (current.done) return; current.done = true;
+    const o = opts[+btn.dataset.i]; record(o.ok);
+    $$(".opt", work).forEach((x) => { x.disabled = true; if (opts[+x.dataset.i].ok) x.classList.add("right"); });
+    if (!o.ok) btn.classList.add("wrong");
+    $("#bfb").innerHTML = `<div class="feedback ${o.ok ? "ok" : "no"}"><div class="verdict">${o.ok ? "Bien vu !" : "Ce n'est pas ça"}</div><div>${b.expl}</div><div>${linkTo(b.fn)}</div></div>`;
+  }));
+}
+
+/* ---- Complète le code ---- */
+function renderFill() {
+  const f = pickFresh(FILLS, "fill"); current = { kind: "fill", done: false };
+  work.innerHTML = `${head("fill")}
+    <div class="q">Que faut-il écrire à la place du <span class="blank">?</span> dans <code>${esc(f.fn)}</code> ?</div>
+    ${codeBlock(f.code)}
+    <form class="answer-row" id="ff"><input class="mono" type="text" id="fin" placeholder="ce qui manque" autocomplete="off" spellcheck="false" aria-label="Ce qui manque"><button class="btn" type="submit">Vérifier</button></form>
+    <div id="ffb"></div>`;
+  $("#fin").focus({ preventScroll: true });
+  $("#ff").addEventListener("submit", (e) => {
+    e.preventDefault(); if (current.done) return;
+    const v = normCode($("#fin").value);
+    if (!v) return;
+    const ok = f.ans.some((a) => normCode(a) === v);
+    let hint = "";
+    if (!ok && f.ans.some((a) => normCode(a).replace(/[()]/g, "") === v.replace(/[()]/g, ""))) hint = "Presque : regarde les parenthèses.";
+    current.done = true; record(ok);
+    const filled = f.code.replace("____", f.ans[0]);
+    $("#ffb").innerHTML = `<div class="feedback ${ok ? "ok" : "no"}"><div class="verdict">${ok ? "Juste !" : "Pas tout à fait"}</div>${hint ? `<div>${hint}</div>` : ""}<div>Réponse : <code>${esc(f.ans[0])}</code>. ${esc(f.expl)}</div>${codeBlock(filled)}<div>${linkTo(f.fn)}</div></div>`;
+    $("#fin").disabled = true; $("#ff button").disabled = true;
+  });
+}
+
+/* ---- Écris la fonction (Claude) ---- */
+let samplePromise = null;
+const getSample = () => (samplePromise ||= (window.claude && window.claude.use ? window.claude.use("sample").catch(() => null) : Promise.resolve(null)));
+let sampleBlocked = false;
+let ctl = null;
+
+function renderWrite() {
+  const w = pickFresh(WRITES, "write"); current = { kind: "write", w, hints: 0, done: false };
+  const draft = store.get("draft-" + w.name, "");
+  work.innerHTML = `${head("write")}
+    <div class="spec"><div class="q">Écris <code>${esc(w.name)}</code></div><div class="sig">${esc(w.name)} : ${esc(w.sig)}</div><p>${esc(w.spec)}</p></div>
+    <div class="tablebox"><table><thead><tr><th>Appel</th><th>Résultat attendu</th></tr></thead><tbody>${w.ex.map(([a, b]) => `<tr><td><code>${esc(a)}</code></td><td><code>${esc(b)}</code></td></tr>`).join("")}</tbody></table></div>
+    <textarea id="code-in" spellcheck="false" autocomplete="off" aria-label="Ton code OCaml" placeholder="let rec ${esc(w.name)} ... =">${esc(draft)}</textarea>
+    <div class="toolbar">
+      <button class="btn" type="button" id="w-check">Corriger avec Claude</button>
+      <button class="btn ghost" type="button" id="w-stop" hidden>Arrêter</button>
+      <button class="btn ghost" type="button" id="w-hint">Un indice</button>
+      <button class="btn ghost" type="button" id="w-sol">Voir la solution</button>
+    </div>
+    <div class="hints" id="w-hints"></div>
+    <div id="w-out"></div>`;
+  const ta = $("#code-in");
+  ta.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") { e.preventDefault(); const s = ta.selectionStart; ta.setRangeText("  ", s, ta.selectionEnd, "end"); }
+  });
+  ta.addEventListener("input", () => store.set("draft-" + w.name, ta.value));
+  $("#w-hint").addEventListener("click", () => {
+    if (current.hints >= w.hints.length) return;
+    $("#w-hints").insertAdjacentHTML("beforeend", `<div class="hint"><b>Indice ${current.hints + 1}.</b> ${esc(w.hints[current.hints])}</div>`);
+    current.hints++; if (current.hints >= w.hints.length) $("#w-hint").disabled = true;
+  });
+  $("#w-sol").addEventListener("click", () => showSolution(w, null));
+  $("#w-check").addEventListener("click", () => correctWithClaude(w));
+  getSample().then((s) => { if (!s || sampleBlocked) markNoClaude(); });
+}
+function markNoClaude() {
+  const b = $("#w-check"); if (!b) return;
+  b.disabled = true; b.textContent = "Correction par Claude indisponible ici";
+  if (!$("#w-noclaude")) $("#w-out").insertAdjacentHTML("beforebegin", `<p class="muted" id="w-noclaude">Compare ton code avec la solution, puis note-toi toi-même.</p>`);
+}
+function showSolution(w, afterVerdict) {
+  const out = $("#w-out");
+  const selfEval = afterVerdict === null && !current.done ? `<div class="toolbar"><span class="muted">Tu avais bon ?</span><button class="btn small" type="button" id="se-yes">Oui</button><button class="btn ghost small" type="button" id="se-no">Non</button></div>` : "";
+  out.insertAdjacentHTML("beforeend", `<div class="feedback mid"><div class="verdict">Une solution possible</div>${codeBlock(w.sol)}<div class="muted">D'autres solutions correctes existent.</div>${selfEval}</div>`);
+  $("#w-sol").disabled = true;
+  const y = $("#se-yes"), n = $("#se-no");
+  if (y) { const done = (ok) => { if (current.done) return; current.done = true; record(ok); y.disabled = n.disabled = true; }; y.addEventListener("click", () => done(true)); n.addEventListener("click", () => done(false)); }
+}
+async function correctWithClaude(w) {
+  const code = $("#code-in").value.trim();
+  const out = $("#w-out");
+  if (!code) { out.innerHTML = `<div class="feedback mid"><div>Écris d'abord ton code dans la zone ci-dessus.</div></div>`; return; }
+  const sample = await getSample();
+  if (!sample) { markNoClaude(); return; }
+  const btn = $("#w-check"), stop = $("#w-stop");
+  btn.disabled = true; stop.hidden = false;
+  ctl = new AbortController();
+  const t0 = Date.now();
+  out.innerHTML = `<div class="feedback mid"><div class="verdict" id="w-wait">Claude relit ton code…</div><div class="muted">Ça prend en général entre 10 et 40 secondes.</div></div>`;
+  const tick = setInterval(() => { const el = $("#w-wait"); if (el) el.textContent = `Claude relit ton code… ${Math.round((Date.now() - t0) / 1000)} s`; }, 1000);
+  stop.onclick = () => ctl && ctl.abort();
+  const prompt = `Tu corriges l'exercice OCaml d'une étudiante de première année de prépa (EPITA). Réponds en français, avec bienveillance mais sans complaisance : signale chaque vraie erreur.
+
+Contraintes du TD : pas de module List (ni List.rev, List.map, etc.) ; récursion avec match ; l'opérateur @ est toléré. Les fonctions rev et identic des TD peuvent être supposées déjà définies.
+
+Énoncé : écrire la fonction ${w.name} : ${w.sig}
+${w.spec}
+Exemples attendus :
+${w.ex.map(([a, b]) => "  " + a + "  ->  " + b).join("\n")}
+
+Une solution de référence (toute autre solution correcte est acceptée, ne pénalise pas une approche différente) :
+${w.sol}
+
+Code de l'étudiante (entre les lignes ===) :
+===
+${code}
+===
+
+Vérifie dans cet ordre : syntaxe (le code compile-t-il ?), types, nom de la fonction, cas de base, motifs exhaustifs, terminaison, résultat sur chaque exemple (déroule-les), respect des contraintes. Ne compte pas comme erreur un simple choix de style (p e = true est redondant mais pas faux : mentionne-le dans "conseil" seulement).
+
+Réponds uniquement avec un objet JSON de cette forme :
+{"verdict": "correct" | "presque" | "incorrect", "note": entier de 0 à 10, "resume": "une phrase", "erreurs": [{"ou": "court extrait du code", "probleme": "ce qui ne va pas et pourquoi", "correction": "ce qu'il faut écrire"}], "conseil": "une phrase ou chaîne vide", "code_corrige": "son code corrigé en modifiant le moins possible (identique s'il est juste)"}`;
+  try {
+    const r = await sample.json(prompt, { signal: ctl.signal });
+    renderVerdict(w, r);
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "cancelled") out.innerHTML = `<div class="feedback mid"><div>Correction arrêtée.</div></div>`;
+    else if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(code)) { sampleBlocked = true; out.innerHTML = ""; markNoClaude(); }
+    else if (code === "rate_limited") out.innerHTML = `<div class="feedback no"><div>Trop de corrections d'affilée. Réessaie dans quelques minutes.</div></div>`;
+    else if (code === "session_expired") out.innerHTML = `<div class="feedback no"><div>Ta session a expiré : reconnecte-toi à Claude, puis réessaie.</div></div>`;
+    else out.innerHTML = `<div class="feedback no"><div>La correction n'a pas abouti. Réessaie avec le bouton « Corriger avec Claude ».</div></div>`;
+  } finally {
+    clearInterval(tick); stop.hidden = true; const b = $("#w-check"); if (b && !sampleBlocked) b.disabled = false; ctl = null;
+  }
+}
+function renderVerdict(w, r) {
+  const v = String(r && r.verdict || "").toLowerCase();
+  const cls = v === "correct" ? "ok" : v === "presque" ? "mid" : "no";
+  const title = v === "correct" ? "Correct !" : v === "presque" ? "Presque" : "À reprendre";
+  const note = Number.isFinite(+r.note) ? Math.max(0, Math.min(10, Math.round(+r.note))) : null;
+  const errs = Array.isArray(r.erreurs) ? r.erreurs : [];
+  if (!current.done) { current.done = true; record(v === "correct"); }
+  $("#w-out").innerHTML = `<div class="feedback ${cls}">
+    <div class="toolbar"><span class="verdict">${title}</span>${note !== null ? `<span class="note">${note}<span class="muted">/10</span></span>` : ""}</div>
+    ${r.resume ? `<div>${esc(r.resume)}</div>` : ""}
+    ${errs.length ? `<div><b>Ce qui ne va pas :</b></div><ul class="err-list">${errs.map((x) => `<li>${x.ou ? `<code>${esc(x.ou)}</code> — ` : ""}${esc(x.probleme || "")}${x.correction ? `<br><span class="muted">À écrire :</span> <code>${esc(x.correction)}</code>` : ""}</li>`).join("")}</ul>` : ""}
+    ${r.conseil ? `<div><b>Conseil :</b> ${esc(r.conseil)}</div>` : ""}
+    ${r.code_corrige && v !== "correct" ? `<div><b>Ton code corrigé :</b></div>${codeBlock(String(r.code_corrige))}` : ""}
+  </div>`;
+}
+
+$$(".mode").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+nextExercise();
+</script>
+
+</body>
+</html>
