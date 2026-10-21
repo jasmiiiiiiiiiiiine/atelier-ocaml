@@ -133,7 +133,7 @@ details.card[open] > summary::after { content: "–"; }
 .feedback .verdict { font: 800 1.05rem/1.2 var(--display); }
 .feedback.ok .verdict { color: var(--ok); } .feedback.no .verdict { color: var(--bad); } .feedback.mid .verdict { color: var(--warn); }
 ol.steps { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; font-size: 0.93rem; }
-textarea#code-in { width: 100%; min-height: 200px; resize: vertical; line-height: 1.55; tab-size: 2; }
+
 .spec { display: grid; gap: 6px; }
 .sig { font: 600 0.9rem var(--mono); color: var(--muted); }
 .hints { display: grid; gap: 6px; }
@@ -141,6 +141,35 @@ textarea#code-in { width: 100%; min-height: 200px; resize: vertical; line-height
 .err-list { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; }
 .muted { color: var(--muted); font-size: 0.9rem; }
 .note { font: 800 1.6rem/1 var(--display); }
+
+/* niveaux et examen */
+.levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.lvl { text-align: left; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 12px; padding: 14px 16px; cursor: pointer; display: grid; gap: 4px; align-content: start; }
+.lvl b { font: 800 1.08rem/1.2 var(--display); }
+.lvl > span:last-child { font-size: 0.84rem; color: var(--muted); }
+.lvl-n { font: 800 1.5rem/1 var(--display); color: var(--accent); }
+.lvl[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: var(--accent-soft); }
+.lvl.exam .lvl-n { font-size: 1.3rem; }
+#level-area { display: grid; gap: 14px; }
+.q-block { border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; background: var(--bg); min-width: 0; }
+.q-block.good { border-left: 4px solid var(--ok); }
+.q-block.badq { border-left: 4px solid var(--bad); }
+.q-title { display: flex; gap: 10px; justify-content: space-between; align-items: baseline; flex-wrap: wrap; font: 700 1rem/1.35 var(--display); }
+.pts { font: 700 0.78rem/1 var(--mono); color: var(--accent); background: var(--accent-soft); padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+h3 .pts { margin-left: 8px; vertical-align: middle; }
+textarea.code-in { width: 100%; min-height: 170px; resize: vertical; line-height: 1.55; tab-size: 2; }
+.opt.radio { display: flex; gap: 10px; align-items: flex-start; }
+.opt.radio input { margin-top: 3px; accent-color: var(--accent); }
+.opt.mono, .opt.mono span { font-family: var(--mono); font-size: 0.88rem; }
+.exam-bar { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 58px); z-index: 4; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; box-shadow: 0 6px 18px -12px rgba(0,0,0,.35); }
+.exam-bar .btn { margin-left: auto; }
+.timer { font: 700 1.05rem/1 var(--mono); font-variant-numeric: tabular-nums; }
+.timer.urgent { color: var(--bad); }
+.exam-paper h3 { margin-top: 18px; }
+#exam-area { display: grid; gap: 14px; }
+.result { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+.big-note { font: 800 3.4rem/1 var(--display); color: var(--accent); font-variant-numeric: tabular-nums; }
+.big-note span { font-size: 1.4rem; color: var(--muted); }
 footer { color: var(--muted); font-size: 0.85rem; padding-block: 24px; border-top: 1px solid var(--line); }
 @media (max-width: 560px) { .score { margin-left: 0; width: 100%; } h2 { font-size: 1.35rem; } .work { padding: 16px; } }
 @media (prefers-reduced-motion: no-preference) { .feedback { animation: rise .25s ease-out; } @keyframes rise { from { transform: translateY(4px); opacity: .6; } to { transform: none; opacity: 1; } } }
@@ -168,20 +197,23 @@ footer { color: var(--muted); font-size: 0.85rem; padding-block: 24px; border-to
 <section class="panel" id="exercices" role="tabpanel" aria-labelledby="t-exercices">
   <div>
     <div class="eyebrow">Entraînement</div>
-    <h2>Un nouvel exercice à chaque clic</h2>
-    <p class="lead">Les exercices sont tirés au hasard à partir des fonctions de tes TD. Le site calcule lui-même la bonne réponse et te montre le déroulé quand tu te trompes.</p>
+    <h2>Du TD au partiel, puis l'examen blanc</h2>
+    <p class="lead">Choisis ton niveau. Les exercices sont tirés au hasard ; les résultats sont calculés par le site, et ton code est relu par Claude.</p>
   </div>
-  <div class="modes" role="group" aria-label="Type d'exercice">
-    <button class="mode" type="button" data-mode="mix" aria-pressed="true"><b>Au hasard</b><span>Tous les types mélangés</span></button>
-    <button class="mode" type="button" data-mode="predict" aria-pressed="false"><b>Prédis le résultat</b><span>Que renvoie cet appel ?</span></button>
-    <button class="mode" type="button" data-mode="bug" aria-pressed="false"><b>Trouve l'erreur</b><span>Code faux, à diagnostiquer</span></button>
-    <button class="mode" type="button" data-mode="fill" aria-pressed="false"><b>Complète le code</b><span>Un trou à remplir</span></button>
-    <button class="mode" type="button" data-mode="write" aria-pressed="false"><b>Écris la fonction</b><span>Corrigée par Claude</span></button>
+  <div class="levels" role="group" aria-label="Niveau">
+    <button class="lvl" type="button" data-level="1" aria-pressed="true"><span class="lvl-n">1</span><b>Type TD</b><span>Les fonctions du TD : prédire, corriger, compléter, écrire</span></button>
+    <button class="lvl" type="button" data-level="2" aria-pressed="false"><span class="lvl-n">2</span><b>Intermédiaire</b><span>Appels combinés, types, fonctions nouvelles</span></button>
+    <button class="lvl" type="button" data-level="3" aria-pressed="false"><span class="lvl-n">3</span><b>Type partiel</b><span>Problèmes en plusieurs questions, barème</span></button>
+    <button class="lvl exam" type="button" data-level="exam" aria-pressed="false"><span class="lvl-n">⏱</span><b>Examen blanc</b><span>Sujet complet chronométré, noté sur 20</span></button>
   </div>
-  <div class="work" id="work" aria-live="polite"></div>
+  <div id="level-area">
+    <div class="modes" id="submodes" role="group" aria-label="Type d'exercice"></div>
+    <div class="work" id="work" aria-live="polite"></div>
+  </div>
+  <div id="exam-area" hidden></div>
 </section>
 
-<!-- ================= COURS ================= -->
+  <!-- ================= COURS ================= -->
 <section class="panel" id="cours" role="tabpanel" aria-labelledby="t-cours" hidden>
   <div>
     <div class="eyebrow">L'essentiel</div>
@@ -1000,7 +1032,7 @@ const WRITES = [
     sol: `let rec mem x lst = match lst with
   | [] -> false
   | e :: l -> e = x || mem x l`, hints: ["C'est exists avec le prédicat « égal à x ».", "Liste vide : false."] },
-  { name: "max_list", sig: "int list -> int", spec: "Renvoie le plus grand élément. Lève Invalid_argument \"empty list\" si la liste est vide.", ex: [["max_list [3; 9; 2]", "9"], ["max_list []", "Exception: Invalid_argument \"empty list\""]],
+  { name: "max_list", sig: "'a list -> 'a", spec: "Renvoie le plus grand élément. Lève Invalid_argument \"empty list\" si la liste est vide.", ex: [["max_list [3; 9; 2]", "9"], ["max_list []", "Exception: Invalid_argument \"empty list\""]],
     sol: `let rec max_list lst = match lst with
   | [] -> invalid_arg "empty list"
   | [x] -> x
@@ -1026,11 +1058,11 @@ const WRITES = [
     sol: `let rec remove x lst = match lst with
   | [] -> []
   | e :: l -> if e = x then remove x l else e :: remove x l`, hints: ["C'est filter avec le prédicat « différent de x »."] },
-  { name: "insert", sig: "int -> int list -> int list", spec: "insert x lst insère x à sa place dans une liste triée par ordre croissant.", ex: [["insert 4 [1; 3; 5; 7]", "[1; 3; 4; 5; 7]"], ["insert 0 []", "[0]"]],
+  { name: "insert", sig: "'a -> 'a list -> 'a list", spec: "insert x lst insère x à sa place dans une liste triée par ordre croissant.", ex: [["insert 4 [1; 3; 5; 7]", "[1; 3; 4; 5; 7]"], ["insert 0 []", "[0]"]],
     sol: `let rec insert x lst = match lst with
   | [] -> [x]
   | e :: l -> if x <= e then x :: lst else e :: insert x l`, hints: ["Liste vide : la liste à un élément [x].", "Si x <= e, x va juste devant toute la liste."] },
-  { name: "min_max", sig: "int list -> int * int", spec: "Renvoie le couple (plus petit, plus grand) d'une liste non vide. Lève Invalid_argument \"empty list\" sur la liste vide.", ex: [["min_max [3; 1; 4; 1; 5]", "(1, 5)"], ["min_max [7]", "(7, 7)"]],
+  { name: "min_max", sig: "'a list -> 'a * 'a", spec: "Renvoie le couple (plus petit, plus grand) d'une liste non vide. Lève Invalid_argument \"empty list\" sur la liste vide.", ex: [["min_max [3; 1; 4; 1; 5]", "(1, 5)"], ["min_max [7]", "(7, 7)"]],
     sol: `let rec min_max lst = match lst with
   | [] -> invalid_arg "empty list"
   | [x] -> (x, x)
@@ -1061,6 +1093,256 @@ const WRITES = [
   { name: "is_palindrome", sig: "'a list -> bool", spec: "Vérifie si la liste se lit pareil dans les deux sens. Tu peux réutiliser rev et identic.", ex: [["is_palindrome [1; 2; 1]", "true"], ["is_palindrome [1; 2]", "false"]],
     sol: `let is_palindrome lst = identic lst (rev lst)`, hints: ["Une liste est un palindrome si elle est égale à son retournement."] },
 ];
+
+/* ===== Niveaux 2 et 3, examen blanc ===== */
+
+/* niveau des fonctions à écrire : 1 = type TD, 2 = intermédiaire */
+const WRITE_LVL = { length: 1, sum: 1, mem: 1, last: 1, count_occ: 1, remove: 1, range: 1,
+  max_list: 2, nth: 2, insert: 2, min_max: 2, zip: 2, apply_n: 2, compress: 2, take: 2, is_palindrome: 2 };
+
+WRITES.push(
+  { name: "merge", sig: "'a list -> 'a list -> 'a list", spec: "Fusionne deux listes triées par ordre croissant en une seule liste triée (on garde les doublons).", ex: [["merge [1; 4; 6] [2; 3; 7]", "[1; 2; 3; 4; 6; 7]"], ["merge [] [5]", "[5]"]],
+    sol: `let rec merge l1 l2 = match (l1, l2) with
+  | ([], l) | (l, []) -> l
+  | (e :: q1, f :: q2) ->
+      if e <= f then e :: merge q1 l2
+      else f :: merge l1 q2`, hints: ["C'est le squelette de shared : on compare les deux têtes.", "Dès qu'une liste est vide, on renvoie l'autre en entier."] },
+  { name: "interleave", sig: "'a list -> 'a list -> 'a list", spec: "Alterne les éléments des deux listes, en commençant par la première. Quand une liste est finie, on ajoute la fin de l'autre.", ex: [["interleave [1; 2; 3] [10; 20]", "[1; 10; 2; 20; 3]"], ["interleave [] [4; 5]", "[4; 5]"]],
+    sol: `let rec interleave l1 l2 = match l1 with
+  | [] -> l2
+  | e :: q -> e :: interleave l2 q`, hints: ["Astuce : après avoir pris e dans l1, on échange le rôle des deux listes.", "Liste de gauche vide : il reste l2."] },
+  { name: "positions", sig: "'a -> 'a list -> int list", spec: "Renvoie la liste des indices (à partir de 0) où x apparaît dans la liste.", ex: [["positions 2 [2; 1; 2; 5]", "[0; 2]"], ["positions 9 [1; 2]", "[]"]],
+    sol: `let positions x lst =
+  let rec aux lst i = match lst with
+    | [] -> []
+    | e :: l -> if e = x then i :: aux l (i + 1) else aux l (i + 1)
+  in aux lst 0`, hints: ["Il faut un compteur d'indice : une fonction auxiliaire avec un paramètre i.", "On avance i de 1 à chaque élément, qu'on le garde ou non."] },
+  { name: "replace", sig: "'a -> 'a -> 'a list -> 'a list", spec: "replace x y lst remplace toutes les occurrences de x par y.", ex: [["replace 1 9 [1; 2; 1]", "[9; 2; 9]"], ["replace 4 0 []", "[]"]],
+    sol: `let rec replace x y lst = match lst with
+  | [] -> []
+  | e :: l -> (if e = x then y else e) :: replace x y l`, hints: ["C'est un map avec la fonction « si c'est x alors y sinon inchangé »."] },
+  { name: "split_at", sig: "int -> 'a list -> 'a list * 'a list", spec: "split_at n lst renvoie le couple (les n premiers éléments, le reste).", ex: [["split_at 2 [1; 2; 3; 4]", "([1; 2], [3; 4])"], ["split_at 5 [1]", "([1], [])"]],
+    sol: `let rec split_at n lst = match lst with
+  | [] -> ([], [])
+  | e :: l ->
+      if n <= 0 then ([], lst)
+      else let (a, b) = split_at (n - 1) l in (e :: a, b)`, hints: ["Renvoie un couple : même squelette que partition, avec let (a, b) = ... in.", "Quand n arrive à 0, tout ce qui reste va à droite."] },
+);
+Object.assign(WRITE_LVL, { merge: 2, interleave: 2, positions: 2, replace: 2, split_at: 2 });
+
+/* ---- Quel est le type ? ---- */
+const TYPES = [
+  { lvl: 2, expr: "fun x -> x + 1", ans: "int -> int", bad: ["'a -> 'a", "int -> 'a", "int"], expl: "<code>+</code> ne s'applique qu'aux <code>int</code> : x est un int et le résultat aussi." },
+  { lvl: 2, expr: "fun x y -> x < y", ans: "'a -> 'a -> bool", bad: ["int -> int -> bool", "'a -> 'b -> bool", "'a * 'a -> bool"], expl: "<code>&lt;</code> compare deux valeurs du <b>même</b> type, quel qu'il soit, et renvoie un booléen." },
+  { lvl: 2, expr: "map", ans: "('a -> 'b) -> 'a list -> 'b list", bad: ["('a -> 'a) -> 'a list -> 'a list", "'a -> 'b -> 'a list -> 'b list", "('a -> 'b) -> 'a list -> 'b"], expl: "f transforme un 'a en 'b ; on lui donne une 'a list et on récupère une 'b list." },
+  { lvl: 2, expr: "filter", ans: "('a -> bool) -> 'a list -> 'a list", bad: ["('a -> bool) -> 'a list -> bool list", "('a -> 'b) -> 'a list -> 'b list", "bool -> 'a list -> 'a list"], expl: "Le prédicat renvoie un bool ; la liste garde le même type d'éléments." },
+  { lvl: 2, expr: "for_all", ans: "('a -> bool) -> 'a list -> bool", bad: ["('a -> bool) -> 'a list -> 'a list", "('a -> bool) -> bool list -> bool", "'a -> 'a list -> bool"], expl: "Un prédicat, une liste, et une seule réponse booléenne." },
+  { lvl: 2, expr: "find", ans: "('a -> bool) -> 'a list -> 'a", bad: ["('a -> bool) -> 'a list -> bool", "('a -> bool) -> 'a list -> 'a list", "'a -> 'a list -> 'a"], expl: "find renvoie un élément de la liste, donc un 'a." },
+  { lvl: 2, expr: "fun x -> [x]", ans: "'a -> 'a list", bad: ["'a list -> 'a list", "'a -> 'a", "int -> int list"], expl: "On met x, de n'importe quel type, dans une liste à un élément." },
+  { lvl: 2, expr: "fun (a, b) -> b", ans: "'a * 'b -> 'b", bad: ["'a -> 'b -> 'b", "'a * 'a -> 'a", "('a * 'b) list -> 'b"], expl: "L'argument est un couple (type <code>'a * 'b</code>) et on renvoie sa deuxième composante." },
+  { lvl: 2, expr: "[1; 2] :: []", ans: "int list list", bad: ["int list", "int list * 'a list", "'a list list"], expl: "On met la liste <code>[1; 2]</code> en tête d'une liste : c'est une liste de listes d'entiers." },
+  { lvl: 2, expr: "([], 1)", ans: "'a list * int", bad: ["int list", "int list * int", "'a * int"], expl: "Un couple : une liste vide (de type quelconque) et un entier." },
+  { lvl: 2, expr: "map (fun x -> x > 0)", ans: "int list -> bool list", bad: ["int list -> int list", "('a -> bool) -> bool list", "int -> bool"], expl: "Application partielle : il manque la liste. La fonction transforme des int en bool." },
+  { lvl: 2, expr: "gcd", ans: "int -> int -> int", bad: ["int * int -> int", "int -> int", "'a -> 'a -> int"], expl: "Deux entiers en argument (séparés, pas en couple), un entier en résultat." },
+  { lvl: 3, expr: "loop", ans: "('a -> bool) -> ('a -> 'a) -> 'a -> 'a", bad: ["('a -> bool) -> ('a -> 'b) -> 'a -> 'b", "('a -> bool) -> 'a -> 'a -> 'a", "(int -> bool) -> (int -> int) -> int -> int"], expl: "f doit renvoyer le même type que x, puisque son résultat est repassé à loop." },
+  { lvl: 3, expr: "partition", ans: "('a -> bool) -> 'a list -> 'a list * 'a list", bad: ["('a -> bool) -> 'a list -> 'a list list", "('a -> bool) -> 'a list * 'a list -> 'a list", "('a -> bool) -> 'a list -> bool list * 'a list"], expl: "Le résultat est un <b>couple</b> de listes : <code>'a list * 'a list</code>." },
+  { lvl: 3, expr: "unzip", ans: "('a * 'b) list -> 'a list * 'b list", bad: ["'a list * 'b list -> ('a * 'b) list", "('a * 'b) list -> ('a list * 'b list) list", "'a * 'b list -> 'a list * 'b list"], expl: "Une liste de couples en entrée, un couple de listes en sortie." },
+  { lvl: 3, expr: "count", ans: "('a -> bool) -> 'a list -> int * int", bad: ["('a -> bool) -> 'a list -> int", "('a -> bool) -> 'a list -> 'a list * 'a list", "('a -> int) -> 'a list -> int * int"], expl: "On renvoie un couple de compteurs." },
+  { lvl: 3, expr: "is_sorted", ans: "('a -> 'a -> bool) -> 'a list -> bool", bad: ["('a * 'a -> bool) -> 'a list -> bool", "('a -> bool) -> 'a list -> bool", "('a -> 'b -> bool) -> 'a list -> bool"], expl: "order prend deux arguments séparés du même type (on compare deux éléments de la même liste)." },
+  { lvl: 3, expr: "fun f x -> f (f x)", ans: "('a -> 'a) -> 'a -> 'a", bad: ["('a -> 'b) -> 'a -> 'b", "('a -> 'a) -> 'a", "'a -> 'a -> 'a"], expl: "Le résultat de f est redonné à f : il doit être du même type que son argument." },
+  { lvl: 3, expr: "fun f g x -> f (g x)", ans: "('a -> 'b) -> ('c -> 'a) -> 'c -> 'b", bad: ["('a -> 'b) -> ('b -> 'c) -> 'a -> 'c", "('a -> 'a) -> ('a -> 'a) -> 'a -> 'a", "('b -> 'c) -> ('a -> 'b) -> 'c -> 'a"], expl: "g s'applique en premier (de 'c vers 'a), puis f (de 'a vers 'b). OCaml nomme les variables de type dans l'ordre où il les rencontre." },
+  { lvl: 3, expr: "fun l -> match l with [] -> 0 | _ :: q -> 1", ans: "'a list -> int", bad: ["int list -> int", "'a -> int", "'a list -> 'a"], expl: "On ne regarde jamais les éléments : la liste peut contenir n'importe quoi." },
+  { lvl: 3, expr: "let rec f x = f x in f", ans: "'a -> 'b", bad: ["'a -> 'a", "'a -> unit", "Erreur de typage"], expl: "f ne renvoie jamais rien de concret (elle boucle), donc OCaml ne contraint pas le type de retour : <code>'b</code> est libre." },
+  { lvl: 3, expr: "fun x -> x :: x", ans: "Erreur de typage", bad: ["'a -> 'a list", "'a list -> 'a list", "'a list -> 'a list list"], expl: "<code>x :: x</code> demande que x soit à la fois un élément et une liste de ces éléments : impossible." },
+  { lvl: 3, expr: "if true then 1 else \"a\"", ans: "Erreur de typage", bad: ["int", "string", "'a"], expl: "Les deux branches d'un if doivent avoir le même type." },
+  { lvl: 3, expr: "shared", ans: "'a list -> 'a list -> 'a list", bad: ["int list -> int list -> int list", "'a list * 'a list -> 'a list", "'a list -> 'b list -> 'a list"], expl: "On compare les éléments des deux listes avec <code>=</code> et <code>&lt;</code> : ils ont le même type 'a, quel qu'il soit." },
+];
+
+/* ---- Problèmes type partiel ---- */
+const PROBLEMS = [
+  { id: "ens", title: "Ensembles en listes triées",
+    intro: "On représente un ensemble d'entiers par une liste <b>strictement croissante</b> (pas de doublon). Par exemple {3, 1, 8} est représenté par <code>[1; 3; 8]</code>. Toutes les fonctions doivent profiter du tri.",
+    qs: [
+      { name: "mem_sorted", sig: "'a -> 'a list -> bool", pts: 1.5, spec: "Teste si x appartient à l'ensemble, en s'arrêtant dès qu'on dépasse x.", ex: [["mem_sorted 4 [1; 3; 4; 8]", "true"], ["mem_sorted 5 [1; 3; 4; 8]", "false"]],
+        sol: `let rec mem_sorted x s = match s with
+  | [] -> false
+  | e :: l -> if e = x then true else if e > x then false else mem_sorted x l` },
+      { name: "add", sig: "'a -> 'a list -> 'a list", pts: 2, spec: "Ajoute x à l'ensemble (sans créer de doublon).", ex: [["add 5 [1; 3; 8]", "[1; 3; 5; 8]"], ["add 3 [1; 3; 8]", "[1; 3; 8]"]],
+        sol: `let rec add x s = match s with
+  | [] -> [x]
+  | e :: l -> if x < e then x :: s else if x = e then s else e :: add x l` },
+      { name: "union", sig: "'a list -> 'a list -> 'a list", pts: 2.5, spec: "Renvoie l'union de deux ensembles.", ex: [["union [1; 3; 5] [2; 3; 6]", "[1; 2; 3; 5; 6]"], ["union [] [4]", "[4]"]],
+        sol: `let rec union s1 s2 = match (s1, s2) with
+  | ([], s) | (s, []) -> s
+  | (e :: q1, f :: q2) ->
+      if e = f then e :: union q1 q2
+      else if e < f then e :: union q1 s2
+      else f :: union s1 q2` },
+      { name: "inter", sig: "'a list -> 'a list -> 'a list", pts: 2, spec: "Renvoie l'intersection de deux ensembles.", ex: [["inter [1; 3; 5; 7] [3; 4; 5]", "[3; 5]"], ["inter [1] [2]", "[]"]],
+        sol: `let rec inter s1 s2 = match (s1, s2) with
+  | ([], _) | (_, []) -> []
+  | (e :: q1, f :: q2) ->
+      if e = f then e :: inter q1 q2
+      else if e < f then inter q1 s2
+      else inter s1 q2` },
+      { name: "subset", sig: "'a list -> 'a list -> bool", pts: 2, spec: "subset s1 s2 teste si s1 est inclus dans s2.", ex: [["subset [3; 5] [1; 3; 5; 7]", "true"], ["subset [2] [1; 3]", "false"]],
+        sol: `let rec subset s1 s2 = match (s1, s2) with
+  | ([], _) -> true
+  | (_, []) -> false
+  | (e :: q1, f :: q2) ->
+      if e = f then subset q1 q2
+      else if e < f then false
+      else subset s1 q2` },
+    ] },
+  { id: "poly", title: "Polynômes",
+    intro: "Un polynôme est représenté par la liste de ses coefficients, du degré 0 au degré le plus haut. Par exemple 1 + 2X² est représenté par <code>[1; 0; 2]</code>. Le module <code>List</code> est interdit.",
+    qs: [
+      { name: "eval", sig: "int list -> int -> int", pts: 2, spec: "Calcule la valeur du polynôme en x.", ex: [["eval [1; 0; 2] 3", "19"], ["eval [] 5", "0"]],
+        sol: `let rec eval p x = match p with
+  | [] -> 0
+  | a :: q -> a + x * eval q x` },
+      { name: "add", sig: "int list -> int list -> int list", pts: 2.5, spec: "Additionne deux polynômes.", ex: [["add [1; 2] [3; 0; 5]", "[4; 2; 5]"], ["add [] [7]", "[7]"]],
+        sol: `let rec add p q = match (p, q) with
+  | ([], r) | (r, []) -> r
+  | (a :: p1, b :: q1) -> (a + b) :: add p1 q1` },
+      { name: "scale", sig: "int -> int list -> int list", pts: 1.5, spec: "Multiplie tous les coefficients par k.", ex: [["scale 3 [1; 0; 2]", "[3; 0; 6]"], ["scale 0 [5]", "[0]"]],
+        sol: `let rec scale k p = match p with
+  | [] -> []
+  | a :: q -> k * a :: scale k q` },
+      { name: "derive", sig: "int list -> int list", pts: 2.5, spec: "Renvoie le polynôme dérivé (la dérivée de aX^i est i·aX^(i-1)).", ex: [["derive [1; 0; 2]", "[0; 4]"], ["derive [5]", "[]"]],
+        sol: `let derive p =
+  let rec aux p i = match p with
+    | [] -> []
+    | a :: q -> i * a :: aux q (i + 1)
+  in match p with
+    | [] -> []
+    | _ :: q -> aux q 1` },
+      { name: "degree", sig: "'a list -> int", pts: 1.5, spec: "Renvoie le degré (le dernier coefficient est supposé non nul). Lève Invalid_argument \"zero\" pour la liste vide.", ex: [["degree [1; 0; 2]", "2"], ["degree [4]", "0"]],
+        sol: `let rec degree p = match p with
+  | [] -> invalid_arg "zero"
+  | [_] -> 0
+  | _ :: q -> 1 + degree q` },
+    ] },
+  { id: "conway", title: "Suite de Conway",
+    intro: "La suite de Conway (bonus du TD 1) se construit en « lisant » la ligne précédente : <code>[1]</code> se lit « un 1 », donc la ligne suivante est <code>[1; 1]</code>, puis <code>[2; 1]</code> (« deux 1 »), puis <code>[1; 2; 1; 1]</code>, etc.",
+    qs: [
+      { name: "count_head", sig: "'a list -> int * 'a list", pts: 2.5, spec: "Renvoie le couple (nombre de répétitions consécutives du premier élément, reste de la liste après ces répétitions). Lève Invalid_argument \"empty\" sur la liste vide.", ex: [["count_head [1; 1; 2; 1]", "(2, [2; 1])"], ["count_head [3]", "(1, [])"]],
+        sol: `let rec count_head l = match l with
+  | [] -> invalid_arg "empty"
+  | [_] -> (1, [])
+  | x :: y :: q ->
+      if x = y then let (n, r) = count_head (y :: q) in (n + 1, r)
+      else (1, y :: q)` },
+      { name: "next_line", sig: "int list -> int list", pts: 3, spec: "Calcule la ligne suivante de la suite.", ex: [["next_line [1; 2; 1; 1]", "[1; 1; 1; 2; 2; 1]"], ["next_line [1]", "[1; 1]"]],
+        sol: `let rec next_line l = match l with
+  | [] -> []
+  | x :: _ -> let (n, r) = count_head l in n :: x :: next_line r` },
+      { name: "conway", sig: "int -> int list", pts: 2.5, spec: "Renvoie la ligne n (la ligne 0 est [1]). Lève Invalid_argument \"negative\" si n < 0.", ex: [["conway 0", "[1]"], ["conway 4", "[1; 1; 1; 2; 2; 1]"]],
+        sol: `let conway n =
+  if n < 0 then invalid_arg "negative"
+  else
+    let rec aux k l = if k = 0 then l else aux (k - 1) (next_line l)
+    in aux n [1]` },
+      { name: "first_longer", sig: "int -> int list", pts: 2, spec: "En utilisant loop, renvoie la première ligne de la suite qui contient strictement plus de k éléments. Tu peux supposer une fonction length déjà écrite.", ex: [["first_longer 5", "[1; 1; 1; 2; 2; 1]"], ["first_longer 0", "[1]"]],
+        sol: `let first_longer k = loop (fun l -> length l > k) next_line [1]` },
+    ] },
+  { id: "fold", title: "Ordre supérieur : fold",
+    intro: "On écrit une fonction <code>fold</code> qui « replie » une liste avec une fonction et un accumulateur : <code>fold f acc [a; b; c]</code> = <code>f (f (f acc a) b) c</code>. On s'en sert ensuite pour réécrire des fonctions connues, <b>sans récursion</b>.",
+    qs: [
+      { name: "fold", sig: "('a -> 'b -> 'a) -> 'a -> 'b list -> 'a", pts: 2, spec: "Écrire fold.", ex: [["fold (fun a x -> a + x) 0 [1; 2; 3]", "6"], ["fold (fun a x -> a * x) 1 []", "1"]],
+        sol: `let rec fold f acc l = match l with
+  | [] -> acc
+  | e :: q -> fold f (f acc e) q` },
+      { name: "sum", sig: "int list -> int", pts: 1, spec: "Avec fold, sans récursion : la somme des éléments.", ex: [["sum [4; 5]", "9"], ["sum []", "0"]],
+        sol: `let sum l = fold (fun a x -> a + x) 0 l` },
+      { name: "length", sig: "'a list -> int", pts: 1.5, spec: "Avec fold, sans récursion : le nombre d'éléments.", ex: [["length [7; 7; 7]", "3"], ["length []", "0"]],
+        sol: `let length l = fold (fun a _ -> a + 1) 0 l` },
+      { name: "rev", sig: "'a list -> 'a list", pts: 2, spec: "Avec fold, sans récursion : retourner la liste.", ex: [["rev [1; 2; 3]", "[3; 2; 1]"], ["rev []", "[]"]],
+        sol: `let rev l = fold (fun a x -> x :: a) [] l` },
+      { name: "compose_all", sig: "('a -> 'a) list -> 'a -> 'a", pts: 1.5, spec: "Applique les fonctions de la liste à x, de gauche à droite.", ex: [["compose_all [(fun x -> x + 1); (fun x -> x * 2)] 5", "12"], ["compose_all [] 4", "4"]],
+        sol: `let compose_all fs x = fold (fun a f -> f a) x fs` },
+      { name: "max_by", sig: "('a -> 'b) -> 'a list -> 'a", pts: 2, spec: "Renvoie l'élément e qui maximise f e (le premier en cas d'égalité). Lève Invalid_argument \"empty\" sur la liste vide.", ex: [["max_by (fun x -> x * x) [-5; 3; 4]", "-5"], ["max_by (fun x -> x) [2]", "2"]],
+        sol: `let max_by f l = match l with
+  | [] -> invalid_arg "empty"
+  | e :: q -> fold (fun best x -> if f x > f best then x else best) e q` },
+    ] },
+  { id: "assoc", title: "Tables d'association",
+    intro: "Une table est une liste de couples (clé, valeur) dont les clés sont des entiers <b>strictement croissants</b>, comme dans <code>assoc</code> du TD 1. Par exemple <code>[(1, \"a\"); (4, \"d\")]</code>.",
+    qs: [
+      { name: "update", sig: "'a -> 'b -> ('a * 'b) list -> ('a * 'b) list", pts: 2.5, spec: "Ajoute la clé k avec la valeur v, ou remplace sa valeur si elle existe déjà. La table reste triée.", ex: [["update 3 \"c\" [(1, \"a\"); (4, \"d\")]", "[(1, \"a\"); (3, \"c\"); (4, \"d\")]"], ["update 1 \"z\" [(1, \"a\")]", "[(1, \"z\")]"]],
+        sol: `let rec update k v t = match t with
+  | [] -> [(k, v)]
+  | (key, value) :: q ->
+      if k < key then (k, v) :: t
+      else if k = key then (k, v) :: q
+      else (key, value) :: update k v q` },
+      { name: "remove_key", sig: "'a -> ('a * 'b) list -> ('a * 'b) list", pts: 2, spec: "Supprime la clé k (la table est inchangée si k est absente).", ex: [["remove_key 1 [(1, \"a\"); (4, \"d\")]", "[(4, \"d\")]"], ["remove_key 2 [(1, \"a\")]", "[(1, \"a\")]"]],
+        sol: `let rec remove_key k t = match t with
+  | [] -> []
+  | (key, value) :: q ->
+      if key = k then q
+      else if key > k then t
+      else (key, value) :: remove_key k q` },
+      { name: "keys", sig: "('a * 'b) list -> 'a list", pts: 1, spec: "Renvoie la liste des clés.", ex: [["keys [(1, \"a\"); (4, \"d\")]", "[1; 4]"], ["keys []", "[]"]],
+        sol: `let rec keys t = match t with
+  | [] -> []
+  | (k, _) :: q -> k :: keys q` },
+      { name: "map_values", sig: "('a -> 'b) -> ('c * 'a) list -> ('c * 'b) list", pts: 2, spec: "Applique f à toutes les valeurs, sans toucher aux clés.", ex: [["map_values (fun v -> v * 10) [(1, 2); (3, 4)]", "[(1, 20); (3, 40)]"], ["map_values (fun v -> v) []", "[]"]],
+        sol: `let rec map_values f t = match t with
+  | [] -> []
+  | (k, v) :: q -> (k, f v) :: map_values f q` },
+      { name: "merge_tables", sig: "('a * 'b) list -> ('a * 'b) list -> ('a * 'b) list", pts: 2.5, spec: "Fusionne deux tables. Si une clé est dans les deux, on garde la valeur de la deuxième table.", ex: [["merge_tables [(1, \"a\"); (3, \"c\")] [(2, \"b\"); (3, \"z\")]", "[(1, \"a\"); (2, \"b\"); (3, \"z\")]"], ["merge_tables [] [(5, \"e\")]", "[(5, \"e\")]"]],
+        sol: `let rec merge_tables t1 t2 = match (t1, t2) with
+  | ([], t) | (t, []) -> t
+  | ((k1, v1) :: q1, (k2, v2) :: q2) ->
+      if k1 = k2 then (k2, v2) :: merge_tables q1 q2
+      else if k1 < k2 then (k1, v1) :: merge_tables q1 t2
+      else (k2, v2) :: merge_tables t1 q2` },
+    ] },
+];
+
+/* ---- Appels composés (niveaux 2 et 3) ---- */
+LAMBDAS.fMix = [
+  mkF("if x mod 2 = 0 then x / 2 else 3 * x + 1", (x) => (omod(x, 2) === 0 ? odiv(x, 2) : 3 * x + 1)),
+  mkF("x * x - 1", (x) => x * x - 1),
+  mkF("if x > 0 then x else 0 - x", (x) => (x > 0 ? x : -x)),
+  mkF("2 * x + 1", (x) => 2 * x + 1),
+];
+const COMPOSED = [
+  { lvl: 2, make: () => { const f = pick(LAMBDAS.fInt), p = pick(LAMBDAS.pred), l = randList(rnd(4, 6)); return [`map (${f.src}) (filter (${p.src}) ${fmt(l)})`, [["filter", [p, l]], ["map", [f, "$"]]]]; } },
+  { lvl: 2, make: () => { const f = pick(LAMBDAS.fInt), p = pick(LAMBDAS.pred), l = randList(rnd(4, 5)); return [`filter (${p.src}) (map (${f.src}) ${fmt(l)})`, [["map", [f, l]], ["filter", [p, "$"]]]]; } },
+  { lvl: 2, make: () => { const f = pick(LAMBDAS.fInt), p = pick(LAMBDAS.pred), l = randList(rnd(4, 6)); return [`count (${p.src}) (map (${f.src}) ${fmt(l)})`, [["map", [f, l]], ["count", [p, "$"]]]]; } },
+  { lvl: 2, make: () => { const p = pick(LAMBDAS.pred), l = randList(rnd(4, 6)); return [`rev (filter (${p.src}) ${fmt(l)})`, [["filter", [p, l]], ["rev", ["$"]]]]; } },
+  { lvl: 2, make: () => { const f = pick(LAMBDAS.fInt), p = pick(LAMBDAS.pred), l = randList(rnd(3, 5)); return [`exists (${p.src}) (map (${f.src}) ${fmt(l)})`, [["map", [f, l]], ["exists", [p, "$"]]]]; } },
+  { lvl: 2, make: () => { const f = pick(LAMBDAS.fInt), l = randList(rnd(3, 5)); return [`map (${f.src}) (rev ${fmt(l)})`, [["rev", [l]], ["map", [f, "$"]]]]; } },
+  { lvl: 2, make: () => { const p = pick(LAMBDAS.pred), o = pick(LAMBDAS.ord.slice(0, 3)), l = randList(rnd(4, 6), 0, 9); return [`is_sorted (${o.src}) (filter (${p.src}) ${fmt(l)})`, [["filter", [p, l]], ["is_sorted", [o, "$"]]]]; } },
+  { lvl: 3, make: () => { const f = pick(LAMBDAS.fMix), g = pick(LAMBDAS.fInt), l = randList(rnd(3, 5)); return [`map (${f.src}) (map (${g.src}) ${fmt(l)})`, [["map", [g, l]], ["map", [f, "$"]]]]; } },
+  { lvl: 3, make: () => { const f = pick(LAMBDAS.fMix), p = pick(LAMBDAS.pred), l = randList(rnd(4, 6)); return [`partition (${p.src}) (map (${f.src}) ${fmt(l)})`, [["map", [f, l]], ["partition", [p, "$"]]]]; } },
+  { lvl: 3, make: () => { const f = pick(LAMBDAS.fMix), p = pick(LAMBDAS.pred), l = randList(rnd(3, 5)); return [`find (${p.src}) (map (${f.src}) ${fmt(l)})`, [["map", [f, l]], ["find", [p, "$"]]]]; } },
+  { lvl: 3, make: () => { const p = pick(LAMBDAS.pred), q = pick(LAMBDAS.pred), l = randList(rnd(4, 6)); return [`for_all (${p.src}) (filter (${q.src}) ${fmt(l)})`, [["filter", [q, l]], ["for_all", [p, "$"]]]]; } },
+  { lvl: 3, make: () => { const a = sortedList(rnd(4, 6), 1, 12), b = sortedList(rnd(5, 7), 1, 12), p = pick([LAMBDAS.pred[1], LAMBDAS.pred[3], LAMBDAS.pred[0]]); return [`shared ${fmt(a)} (filter (${p.src}) ${fmt(b)})`, [["filter", [p, b]], ["shared", [a, "$"]]]]; } },
+  { lvl: 3, make: () => { const f = pick([LAMBDAS.fInt[0], LAMBDAS.fInt[1], LAMBDAS.fMix[3]]), x = rnd(1, 4), k = rnd(15, 80); return [`loop (fun x -> x > ${k}) (${f.src}) (find_power 2 ${x})`, [["find_power", [2, x]], ["loop", [mkP("x > " + k, (y) => y > k), f, "$"]]]]; } },
+];
+function genComposed(lvl) {
+  for (let tries = 0; tries < 30; tries++) {
+    const t = pick(COMPOSED.filter((c) => c.lvl <= lvl && (lvl < 3 || c.lvl === 3 || Math.random() < 0.3)));
+    const [call, chain] = t.make();
+    let val, steps = [], ok = true;
+    chain.forEach(([fn, args], i) => {
+      if (!ok) return;
+      const real = args.map((a) => (a === "$" ? val : a));
+      if (val && val.exc) { ok = false; return; }
+      const r = RUN[fn](...real);
+      const shown = FNS[fn] ? FNS[fn].call(...real) : fn;
+      steps.push(`<b>${i + 1}. ${md("`" + shown + "`")}</b>`);
+      r.steps.forEach((s) => steps.push(md(s)));
+      val = r.res;
+    });
+    if (!ok || (val && val.inf)) continue;
+    return { key: chain[chain.length - 1][0], call, expected: val, stepsHtml: steps };
+  }
+  return genPredict();
+}
 
 
 /* ================= Interface ================= */
@@ -1170,38 +1452,60 @@ $("#cards").addEventListener("click", (e) => { const b = e.target.closest("[data
 renderCards();
 
 /* ================= Exercices ================= */
-let mode = store.get("mode", "mix");
+let level = store.get("level", "1");
+let subMode = store.get("sub", "mix");
 let current = null;
 const work = $("#work");
-const modeName = { predict: "Prédis le résultat", bug: "Trouve l'erreur", fill: "Complète le code", write: "Écris la fonction" };
+const SUBMODES = {
+  1: [["mix", "Au hasard", "Tous les types"], ["predict", "Prédis le résultat", "Une fonction du TD"], ["bug", "Trouve l'erreur", "Code faux"], ["fill", "Complète le code", "Un trou à remplir"], ["write", "Écris la fonction", "Corrigée par Claude"]],
+  2: [["mix", "Au hasard", "Tous les types"], ["predict", "Appels combinés", "Deux fonctions enchaînées"], ["type", "Quel est le type ?", "Comme au partiel"], ["write", "Écris la fonction", "Plus dur, corrigée par Claude"]],
+  3: [["mix", "Au hasard", "Tous les types"], ["problem", "Problème", "Plusieurs questions, barème"], ["type", "Types difficiles", "Ordre supérieur, pièges"], ["predict", "Appels avancés", "Fonctions plus tordues"]],
+};
+const SUBNAME = { predict: "Prédis le résultat", bug: "Trouve l'erreur", fill: "Complète le code", write: "Écris la fonction", type: "Quel est le type ?", problem: "Problème type partiel" };
+const LVLNAME = { 1: "Niveau 1 · Type TD", 2: "Niveau 2 · Intermédiaire", 3: "Niveau 3 · Type partiel" };
 
-function setMode(m) { mode = m; store.set("mode", m); $$(".mode").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === m))); nextExercise(); }
-$$(".mode").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.mode)));
+function setLevel(l) {
+  level = l; store.set("level", l);
+  $$(".lvl").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.level === l)));
+  const exam = l === "exam";
+  $("#level-area").hidden = exam; $("#exam-area").hidden = !exam;
+  if (exam) { renderExamHome(); return; }
+  if (!SUBMODES[l].some(([k]) => k === subMode)) subMode = "mix";
+  $("#submodes").innerHTML = SUBMODES[l].map(([k, t, d]) => `<button class="mode" type="button" data-mode="${k}" aria-pressed="${k === subMode}"><b>${esc(t)}</b><span>${esc(d)}</span></button>`).join("");
+  nextExercise();
+}
+$$(".lvl").forEach((b) => b.addEventListener("click", () => setLevel(b.dataset.level)));
+$("#submodes").addEventListener("click", (e) => {
+  const b = e.target.closest(".mode"); if (!b) return;
+  subMode = b.dataset.mode; store.set("sub", subMode);
+  $$("#submodes .mode").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+  nextExercise();
+});
 
 let lastPick = {};
 function pickFresh(arr, tag) { let i; do { i = Math.floor(Math.random() * arr.length); } while (arr.length > 1 && i === lastPick[tag]); lastPick[tag] = i; return arr[i]; }
-
-function head(kind, extra = "") {
-  return `<div class="work-head"><span class="eyebrow">${esc(modeName[kind])}</span>${extra}<button class="btn ghost small" type="button" id="next">Exercice suivant</button></div>`;
+function head(kind) {
+  return `<div class="work-head"><span class="eyebrow">${esc(LVLNAME[level] || "")} · ${esc(SUBNAME[kind])}</span><button class="btn ghost small" type="button" id="next">Exercice suivant</button></div>`;
 }
 function linkTo(fn) { return CORRECTIONS.find((c) => c.key === fn) ? `<button class="btn ghost small" type="button" data-goto="${fn}">Revoir la correction de ${esc(fn)}</button>` : ""; }
 
 function nextExercise() {
-  const kind = mode === "mix" ? pick(["predict", "predict", "bug", "fill", "write"]) : mode;
-  if (kind === "predict") renderPredict();
-  else if (kind === "bug") renderBug();
-  else if (kind === "fill") renderFill();
-  else renderWrite();
+  const pool = SUBMODES[level].map(([k]) => k).filter((k) => k !== "mix");
+  const kind = subMode === "mix" ? pick(level === "3" ? ["problem", "type", "type", "predict"] : pool) : subMode;
+  ({ predict: renderPredict, bug: renderBug, fill: renderFill, write: renderWrite, type: renderType, problem: renderProblem })[kind]();
 }
 work.addEventListener("click", (e) => {
-  if (e.target.closest("#next")) nextExercise();
+  if (e.target.closest("#next")) { nextExercise(); work.scrollIntoView({ block: "start", behavior: "smooth" }); }
   const g = e.target.closest("[data-goto]");
   if (g) { showTab("corrections"); $("#search").value = ""; $$(".chip[data-td]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.td === "all"))); renderCards(); const d = $("#c-" + g.dataset.goto); if (d) { d.open = true; d.scrollIntoView({ block: "start" }); } }
 });
 
+const stepsHtml = (ex) => `<ol class="steps">${(ex.stepsHtml || ex.steps.map(md)).map((s) => `<li>${s}</li>`).join("")}</ol>`;
+const genFor = (lvl) => (lvl === "1" ? genPredict() : genComposed(+lvl));
+
 /* ---- Prédis le résultat ---- */
 function renderPredict() {
-  const ex = genPredict(); current = { kind: "predict", ex, done: false };
+  const ex = genFor(level); current = { kind: "predict", ex, done: false };
   work.innerHTML = `${head("predict")}
     <div class="q">Que renvoie cet appel ?</div>
     ${codeBlock(ex.call)}
@@ -1212,33 +1516,35 @@ function renderPredict() {
   $("#pf").addEventListener("submit", (e) => {
     e.preventDefault(); if (current.done) return;
     const r = checkPredict(ex.expected, $("#pin").value);
-    const steps = `<ol class="steps">${ex.steps.map((s) => `<li>${md(s)}</li>`).join("")}</ol>`;
     if (r.ok === null) { $("#pfb").innerHTML = `<div class="feedback mid"><div class="verdict">Je n'ai pas compris</div><div>${esc(r.msg)}</div></div>`; return; }
     current.done = true; record(r.ok);
     $("#pfb").innerHTML = r.ok
-      ? `<div class="feedback ok"><div class="verdict">Juste !</div><div>Résultat : <code>${esc(fmt(ex.expected))}</code></div><details><summary class="muted">Voir le déroulé</summary>${steps}</details></div>`
-      : `<div class="feedback no"><div class="verdict">Pas tout à fait</div>${r.msg ? `<div>${esc(r.msg)}</div>` : ""}<div>Bonne réponse : <code>${esc(fmt(ex.expected))}</code></div><div><b>Le déroulé :</b></div>${steps}<div>${linkTo(ex.key)}</div></div>`;
+      ? `<div class="feedback ok"><div class="verdict">Juste !</div><div>Résultat : <code>${esc(fmt(ex.expected))}</code></div><details><summary class="muted">Voir le déroulé</summary>${stepsHtml(ex)}</details></div>`
+      : `<div class="feedback no"><div class="verdict">Pas tout à fait</div>${r.msg ? `<div>${esc(r.msg)}</div>` : ""}<div>Bonne réponse : <code>${esc(fmt(ex.expected))}</code></div><div><b>Le déroulé :</b></div>${stepsHtml(ex)}<div>${linkTo(ex.key)}</div></div>`;
     $("#pin").disabled = true; $("#pf button").disabled = true;
   });
 }
 
-/* ---- Trouve l'erreur ---- */
-function renderBug() {
-  const b = pickFresh(BUGS, "bug");
-  const opts = shuffle([{ t: b.good, ok: true }, ...b.bad.map((t) => ({ t, ok: false }))]);
-  current = { kind: "bug", done: false };
-  work.innerHTML = `${head("bug")}
-    <div class="q">Ce code de <code>${esc(b.fn)}</code> contient une erreur. Laquelle ?</div>
-    ${codeBlock(b.code)}
-    <div class="options">${opts.map((o, i) => `<button class="opt" type="button" data-i="${i}">${esc(o.t)}</button>`).join("")}</div>
-    <div id="bfb"></div>`;
+/* ---- QCM générique (erreur, type) ---- */
+function renderQcm(kind, question, code, good, bads, expl, fn) {
+  const opts = shuffle([{ t: good, ok: true }, ...bads.map((t) => ({ t, ok: false }))]);
+  current = { kind, done: false };
+  work.innerHTML = `${head(kind)}<div class="q">${question}</div>${codeBlock(code)}
+    <div class="options">${opts.map((o, i) => `<button class="opt${kind === "type" ? " mono" : ""}" type="button" data-i="${i}">${esc(o.t)}</button>`).join("")}</div><div id="qfb"></div>`;
   $$(".opt", work).forEach((btn) => btn.addEventListener("click", () => {
     if (current.done) return; current.done = true;
     const o = opts[+btn.dataset.i]; record(o.ok);
     $$(".opt", work).forEach((x) => { x.disabled = true; if (opts[+x.dataset.i].ok) x.classList.add("right"); });
     if (!o.ok) btn.classList.add("wrong");
-    $("#bfb").innerHTML = `<div class="feedback ${o.ok ? "ok" : "no"}"><div class="verdict">${o.ok ? "Bien vu !" : "Ce n'est pas ça"}</div><div>${b.expl}</div><div>${linkTo(b.fn)}</div></div>`;
+    $("#qfb").innerHTML = `<div class="feedback ${o.ok ? "ok" : "no"}"><div class="verdict">${o.ok ? "Bien vu !" : "Ce n'est pas ça"}</div><div>${expl}</div>${fn ? `<div>${linkTo(fn)}</div>` : ""}</div>`;
   }));
+}
+function renderBug() { const b = pickFresh(BUGS, "bug"); renderQcm("bug", `Ce code de <code>${esc(b.fn)}</code> contient une erreur. Laquelle ?`, b.code, b.good, b.bad, b.expl, b.fn); }
+function renderType() {
+  const lv = level === "3" ? 3 : 2;
+  const t = pickFresh(TYPES.filter((x) => x.lvl === lv), "type" + lv);
+  const named = CORRECTIONS.some((c) => c.key === t.expr) || t.expr === "count";
+  renderQcm("type", named ? `Quel est le type de la fonction <code>${esc(t.expr)}</code> (version du TD) ?` : "Quel est le type de cette expression ?", t.expr, t.ans, t.bad, t.expl, null);
 }
 
 /* ---- Complète le code ---- */
@@ -1252,132 +1558,366 @@ function renderFill() {
   $("#fin").focus({ preventScroll: true });
   $("#ff").addEventListener("submit", (e) => {
     e.preventDefault(); if (current.done) return;
-    const v = normCode($("#fin").value);
-    if (!v) return;
+    const v = normCode($("#fin").value); if (!v) return;
     const ok = f.ans.some((a) => normCode(a) === v);
-    let hint = "";
-    if (!ok && f.ans.some((a) => normCode(a).replace(/[()]/g, "") === v.replace(/[()]/g, ""))) hint = "Presque : regarde les parenthèses.";
+    const hint = !ok && f.ans.some((a) => normCode(a).replace(/[()]/g, "") === v.replace(/[()]/g, "")) ? "Presque : regarde les parenthèses." : "";
     current.done = true; record(ok);
-    const filled = f.code.replace("____", f.ans[0]);
-    $("#ffb").innerHTML = `<div class="feedback ${ok ? "ok" : "no"}"><div class="verdict">${ok ? "Juste !" : "Pas tout à fait"}</div>${hint ? `<div>${hint}</div>` : ""}<div>Réponse : <code>${esc(f.ans[0])}</code>. ${esc(f.expl)}</div>${codeBlock(filled)}<div>${linkTo(f.fn)}</div></div>`;
+    $("#ffb").innerHTML = `<div class="feedback ${ok ? "ok" : "no"}"><div class="verdict">${ok ? "Juste !" : "Pas tout à fait"}</div>${hint ? `<div>${hint}</div>` : ""}<div>Réponse : <code>${esc(f.ans[0])}</code>. ${esc(f.expl)}</div>${codeBlock(f.code.replace("____", f.ans[0]))}<div>${linkTo(f.fn)}</div></div>`;
     $("#fin").disabled = true; $("#ff button").disabled = true;
   });
 }
 
-/* ---- Écris la fonction (Claude) ---- */
+/* ---- Claude ---- */
 let samplePromise = null;
 const getSample = () => (samplePromise ||= (window.claude && window.claude.use ? window.claude.use("sample").catch(() => null) : Promise.resolve(null)));
 let sampleBlocked = false;
-let ctl = null;
-
-function renderWrite() {
-  const w = pickFresh(WRITES, "write"); current = { kind: "write", w, hints: 0, done: false };
-  const draft = store.get("draft-" + w.name, "");
-  work.innerHTML = `${head("write")}
-    <div class="spec"><div class="q">Écris <code>${esc(w.name)}</code></div><div class="sig">${esc(w.name)} : ${esc(w.sig)}</div><p>${esc(w.spec)}</p></div>
-    <div class="tablebox"><table><thead><tr><th>Appel</th><th>Résultat attendu</th></tr></thead><tbody>${w.ex.map(([a, b]) => `<tr><td><code>${esc(a)}</code></td><td><code>${esc(b)}</code></td></tr>`).join("")}</tbody></table></div>
-    <textarea id="code-in" spellcheck="false" autocomplete="off" aria-label="Ton code OCaml" placeholder="let rec ${esc(w.name)} ... =">${esc(draft)}</textarea>
-    <div class="toolbar">
-      <button class="btn" type="button" id="w-check">Corriger avec Claude</button>
-      <button class="btn ghost" type="button" id="w-stop" hidden>Arrêter</button>
-      <button class="btn ghost" type="button" id="w-hint">Un indice</button>
-      <button class="btn ghost" type="button" id="w-sol">Voir la solution</button>
-    </div>
-    <div class="hints" id="w-hints"></div>
-    <div id="w-out"></div>`;
-  const ta = $("#code-in");
-  ta.addEventListener("keydown", (e) => {
-    if (e.key === "Tab") { e.preventDefault(); const s = ta.selectionStart; ta.setRangeText("  ", s, ta.selectionEnd, "end"); }
-  });
-  ta.addEventListener("input", () => store.set("draft-" + w.name, ta.value));
-  $("#w-hint").addEventListener("click", () => {
-    if (current.hints >= w.hints.length) return;
-    $("#w-hints").insertAdjacentHTML("beforeend", `<div class="hint"><b>Indice ${current.hints + 1}.</b> ${esc(w.hints[current.hints])}</div>`);
-    current.hints++; if (current.hints >= w.hints.length) $("#w-hint").disabled = true;
-  });
-  $("#w-sol").addEventListener("click", () => showSolution(w, null));
-  $("#w-check").addEventListener("click", () => correctWithClaude(w));
-  getSample().then((s) => { if (!s || sampleBlocked) markNoClaude(); });
+const BLOCK_CODES = ["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"];
+function errorCopy(code) {
+  if (code === "cancelled") return "Correction arrêtée.";
+  if (code === "rate_limited") return "Trop de corrections d'affilée. Réessaie dans quelques minutes.";
+  if (code === "session_expired") return "Ta session a expiré : reconnecte-toi à Claude, puis réessaie.";
+  return "La correction n'a pas abouti. Tu peux réessayer.";
 }
-function markNoClaude() {
-  const b = $("#w-check"); if (!b) return;
-  b.disabled = true; b.textContent = "Correction par Claude indisponible ici";
-  if (!$("#w-noclaude")) $("#w-out").insertAdjacentHTML("beforebegin", `<p class="muted" id="w-noclaude">Compare ton code avec la solution, puis note-toi toi-même.</p>`);
-}
-function showSolution(w, afterVerdict) {
-  const out = $("#w-out");
-  const selfEval = afterVerdict === null && !current.done ? `<div class="toolbar"><span class="muted">Tu avais bon ?</span><button class="btn small" type="button" id="se-yes">Oui</button><button class="btn ghost small" type="button" id="se-no">Non</button></div>` : "";
-  out.insertAdjacentHTML("beforeend", `<div class="feedback mid"><div class="verdict">Une solution possible</div>${codeBlock(w.sol)}<div class="muted">D'autres solutions correctes existent.</div>${selfEval}</div>`);
-  $("#w-sol").disabled = true;
-  const y = $("#se-yes"), n = $("#se-no");
-  if (y) { const done = (ok) => { if (current.done) return; current.done = true; record(ok); y.disabled = n.disabled = true; }; y.addEventListener("click", () => done(true)); n.addEventListener("click", () => done(false)); }
-}
-async function correctWithClaude(w) {
-  const code = $("#code-in").value.trim();
-  const out = $("#w-out");
-  if (!code) { out.innerHTML = `<div class="feedback mid"><div>Écris d'abord ton code dans la zone ci-dessus.</div></div>`; return; }
-  const sample = await getSample();
-  if (!sample) { markNoClaude(); return; }
-  const btn = $("#w-check"), stop = $("#w-stop");
-  btn.disabled = true; stop.hidden = false;
-  ctl = new AbortController();
-  const t0 = Date.now();
-  out.innerHTML = `<div class="feedback mid"><div class="verdict" id="w-wait">Claude relit ton code…</div><div class="muted">Ça prend en général entre 10 et 40 secondes.</div></div>`;
-  const tick = setInterval(() => { const el = $("#w-wait"); if (el) el.textContent = `Claude relit ton code… ${Math.round((Date.now() - t0) / 1000)} s`; }, 1000);
-  stop.onclick = () => ctl && ctl.abort();
-  const prompt = `Tu corriges l'exercice OCaml d'une étudiante de première année de prépa (EPITA). Réponds en français, avec bienveillance mais sans complaisance : signale chaque vraie erreur.
-
-Contraintes du TD : pas de module List (ni List.rev, List.map, etc.) ; récursion avec match ; l'opérateur @ est toléré. Les fonctions rev et identic des TD peuvent être supposées déjà définies.
-
-Énoncé : écrire la fonction ${w.name} : ${w.sig}
-${w.spec}
+const RULES = `Contraintes du cours : pas de module List (ni List.rev, List.map, etc.) ; récursion avec match ; l'opérateur @ est toléré. Les fonctions des TD (rev, map, filter, loop, identic, length…) peuvent être supposées déjà définies.`;
+function questionText(q, i, maxPts) {
+  return `### Question ${q.id || i + 1}${maxPts !== undefined ? ` (barème : ${maxPts} pt)` : ""}
+${q.context ? "Contexte du problème : " + q.context + "\n" : ""}Écrire ${q.name} : ${q.sig}
+${q.spec}
 Exemples attendus :
-${w.ex.map(([a, b]) => "  " + a + "  ->  " + b).join("\n")}
-
-Une solution de référence (toute autre solution correcte est acceptée, ne pénalise pas une approche différente) :
-${w.sol}
-
-Code de l'étudiante (entre les lignes ===) :
+${q.ex.map(([a, b]) => "  " + a + "  ->  " + b).join("\n")}
+Solution de référence (toute autre solution correcte vaut le maximum) :
+${q.sol}
+Copie de l'étudiante :
 ===
-${code}
-===
-
-Vérifie dans cet ordre : syntaxe (le code compile-t-il ?), types, nom de la fonction, cas de base, motifs exhaustifs, terminaison, résultat sur chaque exemple (déroule-les), respect des contraintes. Ne compte pas comme erreur un simple choix de style (p e = true est redondant mais pas faux : mentionne-le dans "conseil" seulement).
-
-Réponds uniquement avec un objet JSON de cette forme :
-{"verdict": "correct" | "presque" | "incorrect", "note": entier de 0 à 10, "resume": "une phrase", "erreurs": [{"ou": "court extrait du code", "probleme": "ce qui ne va pas et pourquoi", "correction": "ce qu'il faut écrire"}], "conseil": "une phrase ou chaîne vide", "code_corrige": "son code corrigé en modifiant le moins possible (identique s'il est juste)"}`;
-  try {
-    const r = await sample.json(prompt, { signal: ctl.signal });
-    renderVerdict(w, r);
-  } catch (e) {
-    const code = e && e.code;
-    if (code === "cancelled") out.innerHTML = `<div class="feedback mid"><div>Correction arrêtée.</div></div>`;
-    else if (["not_granted", "sampling_disabled", "not_declared", "capability_disabled", "capability_removed"].includes(code)) { sampleBlocked = true; out.innerHTML = ""; markNoClaude(); }
-    else if (code === "rate_limited") out.innerHTML = `<div class="feedback no"><div>Trop de corrections d'affilée. Réessaie dans quelques minutes.</div></div>`;
-    else if (code === "session_expired") out.innerHTML = `<div class="feedback no"><div>Ta session a expiré : reconnecte-toi à Claude, puis réessaie.</div></div>`;
-    else out.innerHTML = `<div class="feedback no"><div>La correction n'a pas abouti. Réessaie avec le bouton « Corriger avec Claude ».</div></div>`;
-  } finally {
-    clearInterval(tick); stop.hidden = true; const b = $("#w-check"); if (b && !sampleBlocked) b.disabled = false; ctl = null;
-  }
+${q.answer}
+===`;
 }
-function renderVerdict(w, r) {
-  const v = String(r && r.verdict || "").toLowerCase();
+const strip = (h) => String(h || "").replace(/<[^>]+>/g, "");
+
+/* ---- Écris la fonction (une question) ---- */
+let ctl = null;
+function writeBlock(q, idp) {
+  return `<textarea class="code-in" id="${idp}-code" spellcheck="false" autocomplete="off" aria-label="Ton code OCaml pour ${esc(q.name)}" placeholder="let rec ${esc(q.name)} ... =">${esc(store.get("draft-" + (q.draft || q.name), ""))}</textarea>
+    <div class="toolbar">
+      <button class="btn" type="button" data-act="check">Corriger avec Claude</button>
+      <button class="btn ghost" type="button" data-act="stop" hidden>Arrêter</button>
+      ${q.hints ? `<button class="btn ghost" type="button" data-act="hint">Un indice</button>` : ""}
+      <button class="btn ghost" type="button" data-act="sol">Voir la solution</button>
+    </div>
+    <div class="hints"></div><div class="w-out"></div>`;
+}
+function bindWrite(box, q, idp, onVerdict) {
+  const ta = $(`#${idp}-code`, box); let hints = 0;
+  tabIndent(ta);
+  ta.addEventListener("input", () => store.set("draft-" + (q.draft || q.name), ta.value));
+  const out = $(".w-out", box), checkBtn = $('[data-act="check"]', box), stopBtn = $('[data-act="stop"]', box), solBtn = $('[data-act="sol"]', box), hintBtn = $('[data-act="hint"]', box);
+  if (hintBtn) hintBtn.addEventListener("click", () => {
+    if (hints >= q.hints.length) return;
+    $(".hints", box).insertAdjacentHTML("beforeend", `<div class="hint"><b>Indice ${hints + 1}.</b> ${esc(q.hints[hints])}</div>`);
+    hints++; if (hints >= q.hints.length) hintBtn.disabled = true;
+  });
+  solBtn.addEventListener("click", () => { out.insertAdjacentHTML("beforeend", `<div class="feedback mid"><div class="verdict">Une solution possible</div>${codeBlock(q.sol)}<div class="muted">D'autres solutions correctes existent.</div></div>`); solBtn.disabled = true; });
+  const noClaude = () => { checkBtn.disabled = true; checkBtn.textContent = "Correction par Claude indisponible ici"; if (!$(".noclaude", box)) out.insertAdjacentHTML("beforebegin", `<p class="muted noclaude">Compare ton code avec la solution.</p>`); };
+  getSample().then((s) => { if (!s || sampleBlocked) noClaude(); });
+  checkBtn.addEventListener("click", async () => {
+    const code = ta.value.trim();
+    if (!code) { out.innerHTML = `<div class="feedback mid"><div>Écris d'abord ton code dans la zone ci-dessus.</div></div>`; return; }
+    const sample = await getSample(); if (!sample) { noClaude(); return; }
+    checkBtn.disabled = true; stopBtn.hidden = false;
+    const c = new AbortController(); stopBtn.onclick = () => c.abort();
+    const t0 = Date.now();
+    out.innerHTML = `<div class="feedback mid"><div class="verdict wait">Claude relit ton code…</div><div class="muted">En général entre 10 et 40 secondes.</div></div>`;
+    const tick = setInterval(() => { const el = $(".wait", out); if (el) el.textContent = `Claude relit ton code… ${Math.round((Date.now() - t0) / 1000)} s`; }, 1000);
+    const prompt = `Tu corriges l'exercice OCaml d'une étudiante de première année de prépa (EPITA). Réponds en français, avec bienveillance mais sans complaisance : signale chaque vraie erreur.
+${RULES}
+
+${questionText({ ...q, answer: code, id: q.name })}
+
+Vérifie dans cet ordre : syntaxe (le code compile-t-il ?), types, nom de la fonction, cas de base, motifs exhaustifs, terminaison, résultat sur chaque exemple (déroule-les), respect des contraintes. Un simple choix de style (p e = true au lieu de p e) n'est pas une erreur : mentionne-le seulement dans "conseil".
+
+Réponds uniquement avec un objet JSON :
+{"verdict": "correct" | "presque" | "incorrect", "note": entier de 0 à 10, "resume": "une phrase", "erreurs": [{"ou": "court extrait du code", "probleme": "ce qui ne va pas et pourquoi", "correction": "ce qu'il faut écrire"}], "conseil": "une phrase ou chaîne vide", "code_corrige": "son code corrigé en modifiant le moins possible"}`;
+    try {
+      const r = await sample.json(prompt, { signal: c.signal });
+      out.innerHTML = verdictHtml(r, r.note, 10);
+      if (onVerdict) onVerdict(String(r.verdict || "").toLowerCase() === "correct");
+    } catch (e) {
+      if (BLOCK_CODES.includes(e && e.code)) { sampleBlocked = true; out.innerHTML = ""; noClaude(); }
+      else out.innerHTML = `<div class="feedback no"><div>${esc(errorCopy(e && e.code))}</div></div>`;
+    } finally { clearInterval(tick); stopBtn.hidden = true; if (!sampleBlocked) checkBtn.disabled = false; }
+  });
+}
+function verdictHtml(r, pts, max) {
+  const v = String(r.verdict || "").toLowerCase();
   const cls = v === "correct" ? "ok" : v === "presque" ? "mid" : "no";
   const title = v === "correct" ? "Correct !" : v === "presque" ? "Presque" : "À reprendre";
-  const note = Number.isFinite(+r.note) ? Math.max(0, Math.min(10, Math.round(+r.note))) : null;
+  const n = Number.isFinite(+pts) ? Math.max(0, Math.min(max, Math.round(+pts * 2) / 2)) : null;
   const errs = Array.isArray(r.erreurs) ? r.erreurs : [];
-  if (!current.done) { current.done = true; record(v === "correct"); }
-  $("#w-out").innerHTML = `<div class="feedback ${cls}">
-    <div class="toolbar"><span class="verdict">${title}</span>${note !== null ? `<span class="note">${note}<span class="muted">/10</span></span>` : ""}</div>
-    ${r.resume ? `<div>${esc(r.resume)}</div>` : ""}
+  return `<div class="feedback ${cls}">
+    <div class="toolbar"><span class="verdict">${title}</span>${n !== null ? `<span class="note">${n}<span class="muted">/${max}</span></span>` : ""}</div>
+    ${r.resume || r.commentaire ? `<div>${esc(r.resume || r.commentaire)}</div>` : ""}
     ${errs.length ? `<div><b>Ce qui ne va pas :</b></div><ul class="err-list">${errs.map((x) => `<li>${x.ou ? `<code>${esc(x.ou)}</code> — ` : ""}${esc(x.probleme || "")}${x.correction ? `<br><span class="muted">À écrire :</span> <code>${esc(x.correction)}</code>` : ""}</li>`).join("")}</ul>` : ""}
     ${r.conseil ? `<div><b>Conseil :</b> ${esc(r.conseil)}</div>` : ""}
     ${r.code_corrige && v !== "correct" ? `<div><b>Ton code corrigé :</b></div>${codeBlock(String(r.code_corrige))}` : ""}
   </div>`;
 }
+function tabIndent(ta) { ta.addEventListener("keydown", (e) => { if (e.key === "Tab") { e.preventDefault(); const s = ta.selectionStart; ta.setRangeText("  ", s, ta.selectionEnd, "end"); } }); }
+const examplesTable = (ex) => `<div class="tablebox"><table><thead><tr><th>Appel</th><th>Résultat attendu</th></tr></thead><tbody>${ex.map(([a, b]) => `<tr><td><code>${esc(a)}</code></td><td><code>${esc(b)}</code></td></tr>`).join("")}</tbody></table></div>`;
 
-$$(".mode").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-nextExercise();
+function renderWrite() {
+  const lv = level === "1" ? 1 : 2;
+  const w = pickFresh(WRITES.filter((x) => (WRITE_LVL[x.name] || 2) === lv), "write" + lv);
+  current = { kind: "write", done: false };
+  work.innerHTML = `${head("write")}
+    <div class="spec"><div class="q">Écris <code>${esc(w.name)}</code></div><div class="sig">${esc(w.name)} : ${esc(w.sig)}</div><p>${esc(w.spec)}</p></div>
+    ${examplesTable(w.ex)}<div id="wbox">${writeBlock(w, "w")}</div>`;
+  bindWrite($("#wbox"), w, "w", (ok) => { if (!current.done) { current.done = true; record(ok); } });
+}
+
+/* ---- Problème type partiel ---- */
+function renderProblem() {
+  const p = pickFresh(PROBLEMS, "problem"); current = { kind: "problem", done: false };
+  const total = p.qs.reduce((a, q) => a + q.pts, 0);
+  work.innerHTML = `${head("problem")}
+    <div class="q">${esc(p.title)} <span class="pts">${total} pts</span></div>
+    <p>${p.intro}</p>
+    ${p.qs.map((q, i) => `<div class="q-block" id="pq${i}">
+      <div class="q-title"><span>Question ${i + 1}. <code>${esc(q.name)}</code></span><span class="pts">${q.pts} pt${q.pts > 1 ? "s" : ""}</span></div>
+      <div class="sig">${esc(q.name)} : ${esc(q.sig)}</div><p>${esc(q.spec)}</p>${examplesTable(q.ex)}${writeBlock({ ...q, draft: p.id + "-" + q.name }, "pq" + i)}</div>`).join("")}
+    <p class="muted">Tu peux utiliser les fonctions des questions précédentes. Chaque question se corrige séparément.</p>`;
+  p.qs.forEach((q, i) => bindWrite($("#pq" + i), { ...q, draft: p.id + "-" + q.name, context: strip(p.intro) }, "pq" + i, null));
+}
+
+/* ================= Examen blanc ================= */
+const EXAM_KEY = "exam";
+const DURATIONS = [[60, "1 h"], [90, "1 h 30"], [120, "2 h"], [0, "Sans limite"]];
+let examTimer = null;
+const exArea = $("#exam-area");
+const mention = (n) => (n >= 16 ? "Très bien" : n >= 14 ? "Bien" : n >= 12 ? "Assez bien" : n >= 10 ? "Passable" : "À retravailler");
+const fmtNote = (n) => (Math.round(n * 2) / 2).toString().replace(".", ",");
+
+function buildExam(duration) {
+  const auto = [];
+  const ty2 = shuffle(TYPES.filter((t) => t.lvl === 2))[0], ty3 = shuffle(TYPES.filter((t) => t.lvl === 3))[0];
+  for (const t of [ty2, ty3]) auto.push({ kind: "type", ref: TYPES.indexOf(t), order: shuffle([0, 1, 2, 3]) });
+  auto.push({ kind: "predict", ex: genComposed(2) });
+  auto.push({ kind: "predict", ex: genComposed(3) });
+  auto.push({ kind: "fill", ref: FILLS.indexOf(pick(FILLS)) });
+  auto.push({ kind: "bug", ref: BUGS.indexOf(pick(BUGS)), order: shuffle([0, 1, 2, 3]) });
+  auto.forEach((a) => { if (a.ex) { a.call = a.ex.call; a.expected = a.ex.expected; a.key = a.ex.key; delete a.ex; } });
+  const writes = shuffle(WRITES.filter((w) => WRITE_LVL[w.name] === 2)).slice(0, 2).map((w) => WRITES.indexOf(w));
+  const problem = PROBLEMS.indexOf(pick(PROBLEMS));
+  return { v: 1, startedAt: Date.now(), duration, auto, writes, problem, answers: {}, status: "running" };
+}
+const saveExam = (ex) => store.set(EXAM_KEY, ex);
+const loadExam = () => store.get(EXAM_KEY, null);
+
+function renderExamHome() {
+  clearInterval(examTimer);
+  const ex = loadExam();
+  if (ex && (ex.status === "graded" || ex.status === "self-grading")) { renderExamResult(ex); return; }
+  if (ex && ex.status === "grading") { ex.status = "running"; submitExam(ex); return; }
+  const hist = store.get("exam-history", []);
+  const dur = store.get("exam-duration", 90);
+  exArea.innerHTML = `<div class="work">
+    <div class="eyebrow">Examen blanc</div>
+    <div class="q">Un sujet complet, noté sur 20</div>
+    <div class="tablebox"><table><thead><tr><th>Partie</th><th>Contenu</th><th>Barème</th></tr></thead><tbody>
+      <tr><td>1. Questions courtes</td><td>2 types, 2 résultats d'appels combinés, 1 code à compléter, 1 erreur à trouver</td><td>6 pts</td></tr>
+      <tr><td>2. Fonctions</td><td>2 fonctions à écrire, niveau intermédiaire</td><td>6 pts</td></tr>
+      <tr><td>3. Problème</td><td>Un problème type partiel en plusieurs questions</td><td>8 pts</td></tr>
+    </tbody></table></div>
+    <p>Comme le jour J : pas de correction pendant l'épreuve, tu rends ta copie à la fin (ou elle part toute seule quand le temps est écoulé). La partie 1 est notée par le site, les parties 2 et 3 par Claude (ou par toi avec la solution, si Claude n'est pas disponible).</p>
+    <div class="toolbar" role="group" aria-label="Durée"><span class="muted">Durée :</span>${DURATIONS.map(([m, t]) => `<button class="chip" type="button" data-dur="${m}" aria-pressed="${m === dur}">${t}</button>`).join("")}</div>
+    <div class="toolbar">${ex && ex.status === "running" ? `<button class="btn" type="button" id="ex-resume">Reprendre l'examen en cours</button><button class="btn ghost" type="button" id="ex-start">Recommencer un nouveau sujet</button>` : `<button class="btn" type="button" id="ex-start">Commencer l'examen</button>`}</div>
+    <div id="ex-confirm"></div>
+    ${hist.length ? `<div class="eyebrow">Tes examens précédents</div><div class="tablebox"><table><thead><tr><th>Date</th><th>Problème</th><th>Temps</th><th>Note</th></tr></thead><tbody>${hist.slice().reverse().map((h) => `<tr><td>${esc(new Date(h.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }))}</td><td>${esc(h.problem)}</td><td>${h.minutes} min</td><td><b>${fmtNote(h.note)}</b>/20</td></tr>`).join("")}</tbody></table></div>` : ""}
+  </div>`;
+  $$("[data-dur]", exArea).forEach((b) => b.addEventListener("click", () => { store.set("exam-duration", +b.dataset.dur); $$("[data-dur]", exArea).forEach((x) => x.setAttribute("aria-pressed", String(x === b))); }));
+  const start = () => { const e = buildExam(store.get("exam-duration", 90)); saveExam(e); renderExam(e); window.scrollTo({ top: 0 }); };
+  $("#ex-start").addEventListener("click", () => {
+    if (ex && ex.status === "running") {
+      $("#ex-confirm").innerHTML = `<div class="feedback mid"><div>Ton examen en cours sera perdu.</div><div class="toolbar"><button class="btn small" type="button" id="ex-yes">Oui, nouveau sujet</button><button class="btn ghost small" type="button" id="ex-no">Annuler</button></div></div>`;
+      $("#ex-yes").addEventListener("click", start); $("#ex-no").addEventListener("click", () => ($("#ex-confirm").innerHTML = ""));
+    } else start();
+  });
+  if ($("#ex-resume")) $("#ex-resume").addEventListener("click", () => renderExam(ex));
+}
+
+function autoQuestion(a, i) {
+  const n = i + 1;
+  if (a.kind === "type") { const t = TYPES[a.ref]; const opts = [t.ans, ...t.bad]; return { title: "Quel est le type de :", code: t.expr, opts: a.order.map((k) => opts[k]) }; }
+  if (a.kind === "bug") { const b = BUGS[a.ref]; const opts = [b.good, ...b.bad]; return { title: `Ce code de <code>${esc(b.fn)}</code> contient une erreur. Laquelle ?`, code: b.code, opts: a.order.map((k) => opts[k]) }; }
+  if (a.kind === "fill") { const f = FILLS[a.ref]; return { title: `Que faut-il écrire à la place du <span class="blank">?</span> ?`, code: f.code, input: "ce qui manque" }; }
+  return { title: "Que renvoie cet appel ?", code: a.call, input: "valeur OCaml, ou Failure / Invalid_argument" };
+}
+function examWritten(ex) {
+  const list = [];
+  ex.writes.forEach((wi, k) => { const w = WRITES[wi]; list.push({ id: "w" + (k + 1), part: 2, label: `Partie 2 · Question ${k + 1}`, max: 3, q: w }); });
+  const p = PROBLEMS[ex.problem]; const total = p.qs.reduce((a, q) => a + q.pts, 0);
+  p.qs.forEach((q, k) => list.push({ id: "p" + (k + 1), part: 3, label: `Partie 3 · Question ${k + 1}`, max: Math.round((q.pts * 8 / total) * 2) / 2, q: { ...q, context: strip(p.intro) } }));
+  // ajuste pour que la partie 3 fasse exactement 8
+  const s3 = list.filter((x) => x.part === 3).reduce((a, x) => a + x.max, 0);
+  if (s3 !== 8) list[list.length - 1].max += 8 - s3;
+  return list;
+}
+
+function renderExam(ex) {
+  clearInterval(examTimer);
+  const p = PROBLEMS[ex.problem];
+  const written = examWritten(ex);
+  const A = ex.answers;
+  exArea.innerHTML = `<div class="exam-bar" id="exam-bar"><span class="eyebrow">Examen blanc</span><span class="timer" id="ex-timer" aria-live="off"></span><span class="muted" id="ex-saved">Copie enregistrée automatiquement</span><button class="btn small" type="button" id="ex-submit">Rendre la copie</button></div>
+  <div id="ex-submit-confirm"></div>
+  <div class="work exam-paper">
+    <h3>Partie 1 — Questions courtes <span class="pts">6 pts</span></h3>
+    <p class="muted">1 point par question. Écris les valeurs comme OCaml les afficherait.</p>
+    ${ex.auto.map((a, i) => { const q = autoQuestion(a, i); const key = "a" + i; return `<div class="q-block"><div class="q-title"><span>Question ${i + 1}. ${q.title}</span><span class="pts">1 pt</span></div>${codeBlock(q.code)}
+      ${q.opts ? `<div class="options" role="radiogroup">${q.opts.map((o, k) => `<label class="opt radio${a.kind === "type" ? " mono" : ""}"><input type="radio" name="${key}" value="${k}"${String(A[key]) === String(k) ? " checked" : ""}> <span>${esc(o)}</span></label>`).join("")}</div>`
+        : `<input class="mono exam-in" type="text" id="${key}" data-key="${key}" value="${esc(A[key] || "")}" placeholder="${esc(q.input)}" autocomplete="off" spellcheck="false" aria-label="Réponse question ${i + 1}">`}</div>`; }).join("")}
+    <h3>Partie 2 — Fonctions <span class="pts">6 pts</span></h3>
+    ${written.filter((w) => w.part === 2).map((w, k) => `<div class="q-block"><div class="q-title"><span>Question ${k + 1}. Écris <code>${esc(w.q.name)}</code></span><span class="pts">${fmtNote(w.max)} pts</span></div><div class="sig">${esc(w.q.name)} : ${esc(w.q.sig)}</div><p>${esc(w.q.spec)}</p>${examplesTable(w.q.ex)}
+      <textarea class="code-in exam-code" data-key="${w.id}" spellcheck="false" autocomplete="off" aria-label="Code de ${esc(w.q.name)}">${esc(A[w.id] || "")}</textarea></div>`).join("")}
+    <h3>Partie 3 — Problème : ${esc(p.title)} <span class="pts">8 pts</span></h3>
+    <p>${p.intro}</p>
+    <p class="muted">Tu peux utiliser les fonctions des questions précédentes et celles des TD.</p>
+    ${written.filter((w) => w.part === 3).map((w, k) => `<div class="q-block"><div class="q-title"><span>Question ${k + 1}. <code>${esc(w.q.name)}</code></span><span class="pts">${fmtNote(w.max)} pt${w.max > 1 ? "s" : ""}</span></div><div class="sig">${esc(w.q.name)} : ${esc(w.q.sig)}</div><p>${esc(w.q.spec)}</p>${examplesTable(w.q.ex)}
+      <textarea class="code-in exam-code" data-key="${w.id}" spellcheck="false" autocomplete="off" aria-label="Code de ${esc(w.q.name)}">${esc(A[w.id] || "")}</textarea></div>`).join("")}
+    <div class="toolbar"><button class="btn" type="button" id="ex-submit2">Rendre la copie</button></div>
+  </div>`;
+  const save = () => { saveExam(ex); const s = $("#ex-saved"); if (s) s.textContent = "Enregistré à " + new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); };
+  $$(".exam-in, .exam-code", exArea).forEach((el) => { el.addEventListener("input", () => { A[el.dataset.key] = el.value; save(); }); });
+  $$(".exam-code", exArea).forEach(tabIndent);
+  $$('input[type="radio"]', exArea).forEach((r) => r.addEventListener("change", () => { A[r.name] = r.value; save(); }));
+  const ask = () => {
+    const left = ex.duration ? Math.max(0, ex.startedAt + ex.duration * 60000 - Date.now()) : null;
+    $("#ex-submit-confirm").innerHTML = `<div class="feedback mid"><div>Rendre ta copie maintenant ?${left !== null ? ` Il te reste ${Math.ceil(left / 60000)} min.` : ""} Tu ne pourras plus la modifier.</div><div class="toolbar"><button class="btn small" type="button" id="ex-go">Oui, je rends</button><button class="btn ghost small" type="button" id="ex-cancel">Continuer</button></div></div>`;
+    $("#ex-go").addEventListener("click", () => submitExam(ex)); $("#ex-cancel").addEventListener("click", () => ($("#ex-submit-confirm").innerHTML = ""));
+    $("#ex-submit-confirm").scrollIntoView({ block: "center" });
+  };
+  $("#ex-submit").addEventListener("click", ask); $("#ex-submit2").addEventListener("click", ask);
+  const tick = () => {
+    const el = $("#ex-timer"); if (!el) { clearInterval(examTimer); return; }
+    if (!ex.duration) { const m = Math.floor((Date.now() - ex.startedAt) / 60000); el.textContent = `${m} min écoulées`; return; }
+    const left = ex.startedAt + ex.duration * 60000 - Date.now();
+    if (left <= 0) { clearInterval(examTimer); el.textContent = "Temps écoulé"; submitExam(ex, true); return; }
+    const m = Math.floor(left / 60000), s = Math.floor((left % 60000) / 1000);
+    el.textContent = `${m}:${String(s).padStart(2, "0")} restantes`;
+    el.classList.toggle("urgent", left < 5 * 60000);
+  };
+  tick(); examTimer = setInterval(tick, 1000);
+}
+
+function gradeAuto(ex) {
+  return ex.auto.map((a, i) => {
+    const ans = ex.answers["a" + i];
+    let ok = false, correct = "", detail = "";
+    if (a.kind === "type") { const t = TYPES[a.ref]; ok = ans !== undefined && a.order[+ans] === 0; correct = t.ans; detail = t.expl; }
+    else if (a.kind === "bug") { const b = BUGS[a.ref]; ok = ans !== undefined && a.order[+ans] === 0; correct = b.good; detail = b.expl; }
+    else if (a.kind === "fill") { const f = FILLS[a.ref]; ok = !!ans && f.ans.some((x) => normCode(x) === normCode(ans)); correct = f.ans[0]; detail = esc(f.expl); }
+    else { const r = ans ? checkPredict(a.expected, ans) : { ok: false }; ok = r.ok === true; correct = fmt(a.expected); detail = r.msg ? esc(r.msg) : ""; }
+    const q = autoQuestion(a, i);
+    const given = q.opts ? (ans !== undefined ? q.opts[+ans] : "") : ans || "";
+    return { i, ok, pts: ok ? 1 : 0, correct, detail, given, q, a };
+  });
+}
+
+async function submitExam(ex, timeUp) {
+  if (ex.status !== "running") return;
+  clearInterval(examTimer);
+  ex.status = "grading"; ex.endedAt = Date.now(); saveExam(ex);
+  const auto = gradeAuto(ex);
+  const written = examWritten(ex);
+  ex.autoResult = auto.map((r) => ({ ok: r.ok }));
+  exArea.innerHTML = `<div class="work"><div class="eyebrow">Examen blanc</div><div class="q">${timeUp ? "Temps écoulé : copie rendue." : "Copie rendue."}</div>
+    <p>Partie 1 corrigée : <b>${auto.reduce((a, r) => a + r.pts, 0)}/6</b>.</p>
+    <div class="feedback mid"><div class="verdict" id="ex-wait">Claude corrige les parties 2 et 3…</div><div class="muted">Ça peut prendre une à deux minutes.</div></div></div>`;
+  window.scrollTo({ top: 0 });
+  const t0 = Date.now();
+  const tick = setInterval(() => { const el = $("#ex-wait"); if (el) el.textContent = `Claude corrige les parties 2 et 3… ${Math.round((Date.now() - t0) / 1000)} s`; }, 1000);
+  const toGrade = written.filter((w) => (ex.answers[w.id] || "").trim());
+  const results = {};
+  written.forEach((w) => { if (!(ex.answers[w.id] || "").trim()) results[w.id] = { points: 0, verdict: "incorrect", commentaire: "Pas de réponse." }; });
+  let mode = "claude";
+  if (toGrade.length) {
+    const sample = await getSample();
+    if (!sample || sampleBlocked) mode = "self";
+    else {
+      const prompt = `Tu es correcteur d'un examen blanc d'OCaml de première année de prépa (EPITA). Corrige chaque question selon son barème, en français, avec bienveillance mais sans complaisance. Accorde des points partiels (par demi-point) quand l'idée est juste mais qu'il y a des erreurs. Une solution correcte différente de la référence vaut le maximum. Une copie qui ne compile pas perd des points mais garde ceux de l'idée si elle est juste.
+${RULES} Dans le problème, l'étudiante peut utiliser les fonctions des questions précédentes.
+
+${toGrade.map((w, k) => questionText({ ...w.q, id: w.id, answer: ex.answers[w.id] }, k, w.max)).join("\n\n")}
+
+Réponds uniquement avec un objet JSON :
+{"questions": [{"id": "identifiant de la question (${toGrade.map((w) => w.id).join(", ")})", "points": nombre (multiple de 0,5, au plus le barème), "verdict": "correct" | "presque" | "incorrect", "commentaire": "une ou deux phrases", "erreurs": [{"ou": "court extrait", "probleme": "...", "correction": "..."}], "code_corrige": "son code corrigé en modifiant le moins possible"}], "appreciation": "deux ou trois phrases sur l'ensemble de la copie : points forts, ce qu'il faut revoir"}`;
+      try {
+        const r = await sample.json(prompt, {});
+        (Array.isArray(r.questions) ? r.questions : []).forEach((q) => { if (q && q.id) results[String(q.id)] = q; });
+        ex.appreciation = typeof r.appreciation === "string" ? r.appreciation : "";
+        if (toGrade.some((w) => !results[w.id])) mode = "self-partial";
+      } catch (e) {
+        if (BLOCK_CODES.includes(e && e.code)) sampleBlocked = true;
+        mode = "self"; ex.claudeError = errorCopy(e && e.code);
+      }
+    }
+  }
+  clearInterval(tick);
+  ex.written = written.map((w) => {
+    const r = results[w.id];
+    if (!r) return { id: w.id, max: w.max, pending: true };
+    return { id: w.id, max: w.max, points: Math.max(0, Math.min(w.max, Math.round((+r.points || 0) * 2) / 2)), r };
+  });
+  ex.status = ex.written.some((w) => w.pending) ? "self-grading" : "graded";
+  saveExam(ex);
+  if (ex.status === "graded") finishExam(ex); else renderExamResult(ex);
+}
+function finishExam(ex) {
+  ex.status = "graded";
+  const autoPts = ex.autoResult.filter((r) => r.ok).length;
+  ex.note = autoPts + ex.written.reduce((a, w) => a + (w.points || 0), 0);
+  const hist = store.get("exam-history", []);
+  if (!hist.some((h) => h.date === ex.startedAt)) { hist.push({ date: ex.startedAt, note: ex.note, minutes: Math.round(((ex.endedAt || Date.now()) - ex.startedAt) / 60000), problem: PROBLEMS[ex.problem].title }); store.set("exam-history", hist.slice(-30)); }
+  saveExam(ex); renderExamResult(ex);
+}
+function renderExamResult(ex) {
+  clearInterval(examTimer);
+  const auto = gradeAuto(ex);
+  const written = examWritten(ex);
+  const W = Object.fromEntries((ex.written || []).map((w) => [w.id, w]));
+  const graded = ex.status === "graded";
+  const p2 = written.filter((w) => w.part === 2).reduce((a, w) => a + (W[w.id] && W[w.id].points || 0), 0);
+  const p3 = written.filter((w) => w.part === 3).reduce((a, w) => a + (W[w.id] && W[w.id].points || 0), 0);
+  const p1 = auto.reduce((a, r) => a + r.pts, 0);
+  const total = p1 + p2 + p3;
+  exArea.innerHTML = `<div class="work">
+    <div class="eyebrow">Examen blanc · ${esc(PROBLEMS[ex.problem].title)}</div>
+    ${graded ? `<div class="result"><div class="big-note">${fmtNote(total)}<span>/20</span></div><div><div class="verdict">${mention(total)}</div><div class="muted">Partie 1 : ${p1}/6 · Partie 2 : ${fmtNote(p2)}/6 · Partie 3 : ${fmtNote(p3)}/8 · ${Math.round(((ex.endedAt || Date.now()) - ex.startedAt) / 60000)} min</div></div></div>${ex.appreciation ? `<div class="callout tip"><strong>L'avis du correcteur</strong><span>${esc(ex.appreciation)}</span></div>` : ""}`
+      : `<div class="feedback mid"><div class="verdict">À toi de noter ${ex.claudeError ? "" : "certaines questions"}</div><div>${ex.claudeError ? esc(ex.claudeError) + " " : ""}${sampleBlocked || ex.claudeError ? "La correction par Claude n'est pas disponible : " : ""}compare ta réponse à la solution et choisis tes points pour chaque question marquée « à noter ». La note finale s'affiche quand tout est noté.</div></div>`}
+    <div class="toolbar"><button class="btn" type="button" id="ex-new">Nouvel examen</button><button class="btn ghost" type="button" id="ex-home">Retour à l'accueil de l'examen</button></div>
+    <h3>Partie 1 — ${p1}/6</h3>
+    ${auto.map((r) => `<div class="q-block ${r.ok ? "good" : "badq"}"><div class="q-title"><span>Question ${r.i + 1}. ${r.q.title}</span><span class="pts">${r.pts}/1</span></div>${codeBlock(r.q.code)}
+      <div>Ta réponse : ${r.given ? `<code>${esc(r.given)}</code>` : `<span class="muted">aucune</span>`}</div>${r.ok ? "" : `<div>Bonne réponse : <code>${esc(r.correct)}</code></div>`}${r.detail ? `<div class="muted">${r.detail}</div>` : ""}</div>`).join("")}
+    ${[2, 3].map((part) => `<h3>Partie ${part} — ${fmtNote(part === 2 ? p2 : p3)}/${part === 2 ? 6 : 8}</h3>${written.filter((w) => w.part === part).map((w) => {
+      const g = W[w.id]; const ans = ex.answers[w.id] || "";
+      return `<div class="q-block" data-wid="${w.id}"><div class="q-title"><span>${esc(w.label)} · <code>${esc(w.q.name)}</code></span><span class="pts">${g && !g.pending ? fmtNote(g.points) : "à noter"}/${fmtNote(w.max)}</span></div>
+        <div><b>Ta copie :</b></div>${ans.trim() ? codeBlock(ans) : `<p class="muted">Pas de réponse.</p>`}
+        ${g && g.r ? verdictHtml(g.r, g.points, w.max) : ""}
+        ${g && g.pending ? `<div class="toolbar self-grade"><span class="muted">Tes points :</span>${[0, w.max / 2, w.max].map((v) => `<button class="chip" type="button" data-pts="${v}">${fmtNote(v)}</button>`).join("")}</div>` : ""}
+        <details${g && g.pending ? " open" : ""}><summary class="muted">Solution de référence</summary>${codeBlock(w.q.sol)}</details></div>`;
+    }).join("")}`).join("")}
+  </div>`;
+  $("#ex-new").addEventListener("click", () => { store.set(EXAM_KEY, null); const e = buildExam(store.get("exam-duration", 90)); saveExam(e); renderExam(e); window.scrollTo({ top: 0 }); });
+  $("#ex-home").addEventListener("click", () => { if (ex.status === "graded") store.set(EXAM_KEY, null); renderExamHome(); });
+  $$(".self-grade [data-pts]", exArea).forEach((b) => b.addEventListener("click", () => {
+    const id = b.closest("[data-wid]").dataset.wid; const w = ex.written.find((x) => x.id === id);
+    w.points = +b.dataset.pts; delete w.pending; saveExam(ex);
+    if (!ex.written.some((x) => x.pending)) finishExam(ex); else renderExamResult(ex);
+  }));
+}
+
+/* ---- démarrage ---- */
+setLevel(level);
+
 </script>
 
 </body>
